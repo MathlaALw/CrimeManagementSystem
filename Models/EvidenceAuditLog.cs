@@ -10,13 +10,15 @@ namespace Crime_Management_System.Models
 
         [Required, MaxLength(20)] 
         public string Action { get; set; } = null!; // add|update|soft_delete|hard_delete
-        [Required] 
-        public int ActedByUserId { get; set; }
-        public User ActedByUser { get; set; } = null!;
+       
         public DateTime ActedAt { get; set; } = DateTime.UtcNow;
         public string? Details { get; set; }
 
         // navigation properties
+        // many-to-one with User (ActedBy)
+        [Required]
+        public int ActedByUserId { get; set; }
+        public User ActedByUser { get; set; } = null!;
         // many-to-one with Evidence
         [Required]
         public int EvidenceId { get; set; }
