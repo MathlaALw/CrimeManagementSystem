@@ -13,5 +13,9 @@ namespace Crime_Management_System.Models
         public string? Phone { get; set; }
         [MaxLength(500)] 
         public string? Notes { get; set; }
+
+        // navigation properties
+        // one-to-many with CaseParticipant
+        public ICollection<CaseParticipant> CaseParticipants { get; set; } = new List<CaseParticipant>();
     }
 }

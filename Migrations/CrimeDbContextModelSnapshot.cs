@@ -138,9 +138,10 @@ namespace Crime_Management_System.Migrations
 
                     b.HasIndex("AddedByUserId");
 
-                    b.HasIndex("CaseId");
-
                     b.HasIndex("ParticipantId");
+
+                    b.HasIndex("CaseId", "ParticipantId")
+                        .IsUnique();
 
                     b.ToTable("CaseParticipants");
                 });
@@ -164,10 +165,9 @@ namespace Crime_Management_System.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ReportId");
+                    b.HasIndex("CaseId");
 
-                    b.HasIndex("CaseId", "ReportId")
-                        .IsUnique();
+                    b.HasIndex("ReportId");
 
                     b.ToTable("CaseReports");
                 });
@@ -264,7 +264,7 @@ namespace Crime_Management_System.Migrations
 
                     b.ToTable("Evidences", t =>
                         {
-                            t.HasCheckConstraint("CK_Evidence_TextOrImage", "(Type = 0 AND TextContent IS NOT NULL AND FileUrl IS NULL) OR (Type = 1 AND FileUrl IS NOT NULL AND TextContent IS NULL)");
+                            t.HasCheckConstraint("CK_Evidence_TypeAndContent", "(Type IN (0,1)) AND ((Type = 0 AND TextContent IS NOT NULL) OR (Type = 1 AND FileUrl IS NOT NULL))");
                         });
                 });
 
@@ -378,9 +378,9 @@ namespace Crime_Management_System.Migrations
             modelBuilder.Entity("Crime_Management_System.Models.Case", b =>
                 {
                     b.HasOne("Crime_Management_System.Models.User", "CreatedByUser")
-                        .WithMany()
+                        .WithMany("CreatedCases")
                         .HasForeignKey("CreatedByUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("CreatedByUser");
@@ -395,9 +395,9 @@ namespace Crime_Management_System.Migrations
                         .IsRequired();
 
                     b.HasOne("Crime_Management_System.Models.User", "User")
-                        .WithMany()
+                        .WithMany("CaseAssignees")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Case");
@@ -409,7 +409,8 @@ namespace Crime_Management_System.Migrations
                 {
                     b.HasOne("Crime_Management_System.Models.User", "AddedByUser")
                         .WithMany()
-                        .HasForeignKey("AddedByUserId");
+                        .HasForeignKey("AddedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Crime_Management_System.Models.Case", "Case")
                         .WithMany("CaseParticipants")
@@ -418,9 +419,9 @@ namespace Crime_Management_System.Migrations
                         .IsRequired();
 
                     b.HasOne("Crime_Management_System.Models.Participant", "Participant")
-                        .WithMany()
+                        .WithMany("CaseParticipants")
                         .HasForeignKey("ParticipantId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("AddedByUser");
@@ -452,8 +453,9 @@ namespace Crime_Management_System.Migrations
             modelBuilder.Entity("Crime_Management_System.Models.CrimeReport", b =>
                 {
                     b.HasOne("Crime_Management_System.Models.User", "ReportedByUser")
-                        .WithMany()
-                        .HasForeignKey("ReportedByUserId");
+                        .WithMany("CrimeReports")
+                        .HasForeignKey("ReportedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("ReportedByUser");
                 });
@@ -461,9 +463,9 @@ namespace Crime_Management_System.Migrations
             modelBuilder.Entity("Crime_Management_System.Models.Evidence", b =>
                 {
                     b.HasOne("Crime_Management_System.Models.User", "AddedByUser")
-                        .WithMany()
+                        .WithMany("AddedEvidences")
                         .HasForeignKey("AddedByUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Crime_Management_System.Models.Case", "Case")
@@ -480,9 +482,9 @@ namespace Crime_Management_System.Migrations
             modelBuilder.Entity("Crime_Management_System.Models.EvidenceAuditLog", b =>
                 {
                     b.HasOne("Crime_Management_System.Models.User", "ActedByUser")
-                        .WithMany()
+                        .WithMany("EvidenceAuditLogs")
                         .HasForeignKey("ActedByUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Crime_Management_System.Models.Evidence", "Evidence")
@@ -515,6 +517,24 @@ namespace Crime_Management_System.Migrations
             modelBuilder.Entity("Crime_Management_System.Models.Evidence", b =>
                 {
                     b.Navigation("AuditLogs");
+                });
+
+            modelBuilder.Entity("Crime_Management_System.Models.Participant", b =>
+                {
+                    b.Navigation("CaseParticipants");
+                });
+
+            modelBuilder.Entity("Crime_Management_System.Models.User", b =>
+                {
+                    b.Navigation("AddedEvidences");
+
+                    b.Navigation("CaseAssignees");
+
+                    b.Navigation("CreatedCases");
+
+                    b.Navigation("CrimeReports");
+
+                    b.Navigation("EvidenceAuditLogs");
                 });
 #pragma warning restore 612, 618
         }

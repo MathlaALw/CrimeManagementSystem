@@ -58,8 +58,8 @@ namespace Crime_Management_System.Migrations
                     CaseType = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: true),
                     AuthorizationLevel = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
-                    CreatedByUserId = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedByUserId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -68,8 +68,7 @@ namespace Crime_Management_System.Migrations
                         name: "FK_Cases_Users_CreatedByUserId",
                         column: x => x.CreatedByUserId,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -83,9 +82,9 @@ namespace Crime_Management_System.Migrations
                     AreaCity = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: true),
                     ReportDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
-                    ReportedByUserId = table.Column<int>(type: "int", nullable: true),
                     Latitude = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    Longitude = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
+                    Longitude = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    ReportedByUserId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -122,8 +121,7 @@ namespace Crime_Management_System.Migrations
                         name: "FK_CaseAssignees_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -132,10 +130,10 @@ namespace Crime_Management_System.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    CaseId = table.Column<int>(type: "int", nullable: false),
                     Role = table.Column<int>(type: "int", nullable: false),
                     AddedByUserId = table.Column<int>(type: "int", nullable: true),
                     AddedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CaseId = table.Column<int>(type: "int", nullable: false),
                     ParticipantId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -151,8 +149,7 @@ namespace Crime_Management_System.Migrations
                         name: "FK_CaseParticipants_Participants_ParticipantId",
                         column: x => x.ParticipantId,
                         principalTable: "Participants",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_CaseParticipants_Users_AddedByUserId",
                         column: x => x.AddedByUserId,
@@ -181,7 +178,7 @@ namespace Crime_Management_System.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Evidences", x => x.Id);
-                    table.CheckConstraint("CK_Evidence_TextOrImage", "(Type = 0 AND TextContent IS NOT NULL AND FileUrl IS NULL) OR (Type = 1 AND FileUrl IS NOT NULL AND TextContent IS NULL)");
+                    table.CheckConstraint("CK_Evidence_TypeAndContent", "(Type IN (0,1)) AND ((Type = 0 AND TextContent IS NOT NULL) OR (Type = 1 AND FileUrl IS NOT NULL))");
                     table.ForeignKey(
                         name: "FK_Evidences_Cases_CaseId",
                         column: x => x.CaseId,
@@ -192,8 +189,7 @@ namespace Crime_Management_System.Migrations
                         name: "FK_Evidences_Users_AddedByUserId",
                         column: x => x.AddedByUserId,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -230,9 +226,9 @@ namespace Crime_Management_System.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Action = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    ActedByUserId = table.Column<int>(type: "int", nullable: false),
                     ActedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Details = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ActedByUserId = table.Column<int>(type: "int", nullable: false),
                     EvidenceId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -248,8 +244,7 @@ namespace Crime_Management_System.Migrations
                         name: "FK_EvidenceAuditLogs_Users_ActedByUserId",
                         column: x => x.ActedByUserId,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
@@ -269,9 +264,10 @@ namespace Crime_Management_System.Migrations
                 column: "AddedByUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CaseParticipants_CaseId",
+                name: "IX_CaseParticipants_CaseId_ParticipantId",
                 table: "CaseParticipants",
-                column: "CaseId");
+                columns: new[] { "CaseId", "ParticipantId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_CaseParticipants_ParticipantId",
@@ -279,10 +275,9 @@ namespace Crime_Management_System.Migrations
                 column: "ParticipantId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CaseReports_CaseId_ReportId",
+                name: "IX_CaseReports_CaseId",
                 table: "CaseReports",
-                columns: new[] { "CaseId", "ReportId" },
-                unique: true);
+                column: "CaseId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CaseReports_ReportId",

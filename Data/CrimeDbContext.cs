@@ -21,101 +21,106 @@ namespace Crime_Management_System.Data
 
         protected override void OnModelCreating(ModelBuilder b)
         {
-            // Configure unique constraints
-            b.Entity<User>().HasIndex(u => u.Username).IsUnique();
-            b.Entity<User>().HasIndex(u => u.Email).IsUnique();
-            b.Entity<Case>().HasIndex(c => c.CaseNumber).IsUnique();
 
-            // Configure composite unique constraints
-            b.Entity<CaseReport>().HasIndex(x => new { x.CaseId, x.ReportId }).IsUnique();
-            b.Entity<CaseAssignee>().HasIndex(x => new { x.CaseId, x.UserId }).IsUnique();
+            // Users 
+            b.Entity<User>()
+                .HasIndex(u => u.Username).IsUnique();
+            b.Entity<User>()
+                .HasIndex(u => u.Email).IsUnique();
 
+            // Cases 
+            b.Entity<Case>()
+                .HasIndex(c => c.CaseNumber).IsUnique();
 
-            // CaseAssignee: Case (principal) -> CaseAssignees (dependent)
-            b.Entity<CaseAssignee>(e =>
-            {
-                e.HasOne(x => x.Case)
-                 .WithMany(c => c.CaseAssignees)
-                 .HasForeignKey(x => x.CaseId)
-                 .OnDelete(DeleteBehavior.Cascade);         // keep cascade from Case
+            // Case.CreatedByUser 
+            b.Entity<Case>()
+                .HasOne(c => c.CreatedByUser)
+                .WithMany(u => u.CreatedCases)
+                .HasForeignKey(c => c.CreatedByUserId)
+                .OnDelete(DeleteBehavior.NoAction);
 
-                e.HasOne(x => x.User)
-                 .WithMany(u => u.CaseAssignees)
-                 .HasForeignKey(x => x.UserId)
-                 .OnDelete(DeleteBehavior.NoAction);        // break cascade from User
-            });
+          
+            // ===== CaseAssignee =====
+            b.Entity<CaseAssignee>()
+                .HasIndex(x => new { x.CaseId, x.UserId })  
+                .IsUnique();
 
-            // CaseReport: junction between Case and CrimeReport
-            b.Entity<CaseReport>(e =>
-            {
-                e.HasOne(x => x.Case)
-                 .WithMany(c => c.CaseReports)
-                 .HasForeignKey(x => x.CaseId)
-                 .OnDelete(DeleteBehavior.Cascade);         // deleting case deletes its links
+            b.Entity<CaseAssignee>()
+                .HasOne(x => x.Case)
+                .WithMany(c => c.CaseAssignees)
+                .HasForeignKey(x => x.CaseId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-                e.HasOne(x => x.Report)
-                 .WithMany(r => r.CaseReports)
-                 .HasForeignKey(x => x.ReportId)
-                 .OnDelete(DeleteBehavior.NoAction);        // reference entity -> no cascade
-            });
+            b.Entity<CaseAssignee>()
+                .HasOne(x => x.User)                      
+                .WithMany(u => u.CaseAssignees)
+                .HasForeignKey(x => x.UserId)                
+                .OnDelete(DeleteBehavior.NoAction);
 
-            // CaseParticipant: junction between Case and Participant
-            b.Entity<CaseParticipant>(e =>
-            {
-                e.HasOne(x => x.Case)
-                 .WithMany(c => c.CaseParticipants)
-                 .HasForeignKey(x => x.CaseId)
-                 .OnDelete(DeleteBehavior.Cascade);
+            // ===== CaseParticipant =====
+            b.Entity<CaseParticipant>()
+                .HasIndex(x => new { x.CaseId, x.ParticipantId })
+                .IsUnique();
 
-                e.HasOne(x => x.Participant)
-                 .WithMany(p => p.CaseParticipants)
-                 .HasForeignKey(x => x.ParticipantId)
-                 .OnDelete(DeleteBehavior.NoAction);        // participant is a reference entity
-            });
+            b.Entity<CaseParticipant>()
+                .HasOne(x => x.Case)
+                .WithMany(c => c.CaseParticipants)
+                .HasForeignKey(x => x.CaseId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            // Evidence: belongs to Case; optionally uploaded by User (if you have UploaderUserId)
-            b.Entity<Evidence>(e =>
-            {
-                e.HasOne(x => x.Case)
-                 .WithMany(c => c.Evidences)
-                 .HasForeignKey(x => x.CaseId)
-                 .OnDelete(DeleteBehavior.Cascade);
+            b.Entity<CaseParticipant>()
+                .HasOne(x => x.Participant)
+                .WithMany(p => p.CaseParticipants)   
+                .HasForeignKey(x => x.ParticipantId)
+                .OnDelete(DeleteBehavior.NoAction);
 
-                // If your model has: public int? UploaderUserId; public User Uploader { get; set; }
-                // Uncomment if applicable:
-                // e.HasOne(x => x.Uploader)
-                //  .WithMany(u => u.UploadedEvidences)
-                //  .HasForeignKey(x => x.UploaderUserId)
-                //  .OnDelete(DeleteBehavior.NoAction);
-            });
-
-            // EvidenceAuditLog: belongs to Evidence; optionally linked to User (actor)
-            b.Entity<EvidenceAuditLog>(e =>
-            {
-                e.HasOne(x => x.Evidence)
-                 .WithMany(ev => ev.AuditLogs)
-                 .HasForeignKey(x => x.EvidenceId)
-                 .OnDelete(DeleteBehavior.Cascade);         // delete evidence -> delete its logs
-
-                // If model has: public int? UserId; public User User { get; set; }
-                // We do NOT cascade from User:
-                e.HasOne(x => x.User)
-                 .WithMany(u => u.EvidenceAuditLogs)
-                 .HasForeignKey(x => x.UserId)
+            b.Entity<CaseParticipant>()
+                 .HasOne(x => x.AddedByUser)
+                 .WithMany()                         
+                 .HasForeignKey(x => x.AddedByUserId)
                  .OnDelete(DeleteBehavior.NoAction);
-            });
 
-            // Evidence CHECK constraint : either text OR image
-            b.Entity<Evidence>(entity =>
-            {
-                
-                entity.ToTable(t =>
-                {
-                    t.HasCheckConstraint("CK_Evidence_TextOrImage",
-                        "(Type = 0 AND TextContent IS NOT NULL AND FileUrl IS NULL) OR " +
-                        "(Type = 1 AND FileUrl IS NOT NULL AND TextContent IS NULL)");
-                });
-            });
+            // ===== CrimeReport & CaseReport =====
+            b.Entity<CrimeReport>()
+                .HasOne(cr => cr.ReportedByUser)             // nullable (citizen allowed)
+                .WithMany(u => u.CrimeReports)               // your current User.cs has CrimeReports
+                .HasForeignKey(cr => cr.ReportedByUserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Evidence
+            // Evidence belongs to Case (required) and AddedByUser (required)
+            b.Entity<Evidence>()
+                .HasOne(e => e.Case)
+                .WithMany(c => c.Evidences)
+                .HasForeignKey(e => e.CaseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.Entity<Evidence>()
+                .HasOne(e => e.AddedByUser)
+                .WithMany(u => u.AddedEvidences)
+                .HasForeignKey(e => e.AddedByUserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Check constraint matches your model (Type=Text -> TextContent required; Type=Image -> FileUrl required)
+            b.Entity<Evidence>()
+                .ToTable(t => t.HasCheckConstraint(
+                    "CK_Evidence_TypeAndContent",
+                    "(Type IN (0,1)) AND ((Type = 0 AND TextContent IS NOT NULL) OR (Type = 1 AND FileUrl IS NOT NULL))"
+                ));
+            // Evidence fields confirmed in model:contentReference[oaicite:5]{index=5} and enum:contentReference[oaicite:6]{index=6}
+
+            //EvidenceAuditLog
+            b.Entity<EvidenceAuditLog>()
+                .HasOne(ea => ea.Evidence)
+                .WithMany(e => e.AuditLogs)
+                .HasForeignKey(ea => ea.EvidenceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.Entity<EvidenceAuditLog>()
+                .HasOne(ea => ea.ActedByUser)
+                .WithMany(u => u.EvidenceAuditLogs)
+                .HasForeignKey(ea => ea.ActedByUserId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
 
 
