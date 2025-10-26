@@ -1,11 +1,13 @@
-﻿namespace Crime_Management_System.DTOs
+﻿using Crime_Management_System.Models;
+
+namespace Crime_Management_System.DTOs
 {
     public class UpdateUserDto
     {
-         public string? Email,
-        public string? FullName,
-       public string? Password,
-       public UserRole? Role,
-        ClearanceLevel? ClearanceLevel
+         public string? Email { get; set; }
+        public string? FullName { get; set; }
+        public string? Password { get; set; }
+        public UserRole? Role { get; set; }
+        public ClearanceLevel? ClearanceLevel { get; set; }
     }
 }

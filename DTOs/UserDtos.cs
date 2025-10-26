@@ -1,6 +1,7 @@
 ﻿using System;
 using Crime_Management_System;
 using Crime_Management_System.DTOs;
+using Crime_Management_System.Models;
 namespace Crime_Management_System.DTOs
     
 {
