@@ -31,6 +31,23 @@ namespace Crime_Management_System.Data
             b.Entity<CaseAssignee>().HasIndex(x => new { x.CaseId, x.UserId }).IsUnique();
 
 
+
+           
+
+            // Evidence CHECK constraint : either text OR image
+            b.Entity<Evidence>(entity =>
+            {
+                
+                entity.ToTable(t =>
+                {
+                    t.HasCheckConstraint("CK_Evidence_TextOrImage",
+                        "(Type = 0 AND TextContent IS NOT NULL AND FileUrl IS NULL) OR " +
+                        "(Type = 1 AND FileUrl IS NOT NULL AND TextContent IS NULL)");
+                });
+            });
         }
+
+
     }
+    
 }
