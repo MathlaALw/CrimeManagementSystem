@@ -1,4 +1,7 @@
 
+using Crime_Management_System.Data;
+using Microsoft.EntityFrameworkCore;
+
 namespace Crime_Management_System
 {
     public class Program
@@ -6,6 +9,10 @@ namespace Crime_Management_System
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            // Configure DbContext with SQL Server
+            builder.Services.AddDbContext<CrimeDbContext>(o =>
+            o.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
             // Add services to the container.
 
