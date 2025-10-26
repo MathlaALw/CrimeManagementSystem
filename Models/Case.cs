@@ -23,12 +23,15 @@ namespace Crime_Management_System.Models
         public ClearanceLevel AuthorizationLevel { get; set; }
         [Required] 
         public CaseStatus Status { get; set; } = CaseStatus.Pending;
-        [Required] 
-        public int CreatedByUserId { get; set; }
-        public User CreatedByUser { get; set; } = null!;
+       
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // navigation properties
+
+        // one-to-many with User (CreatedBy)
+        [Required]
+        public int CreatedByUserId { get; set; }
+        public User CreatedByUser { get; set; } = null!;
         // one-to-many with CaseParticipant
         public ICollection<CaseParticipant> CaseParticipants { get; set; } = new List<CaseParticipant>();
         // one-to-many with CaseAssignee
