@@ -1,6 +1,9 @@
-﻿namespace Crime_Management_System.DTOs
+﻿using Crime_Management_System.Models;
+using System.ComponentModel.DataAnnotations;
+namespace Crime_Management_System.DTOs
+
 {
-    public class ReportDtos
+    public class SubmitCrimeReportDto
     {
        public string? Title { get; set; }
        public string? Description { get; set; }
@@ -9,4 +12,5 @@
         decimal? Longitude { get; set; }
         int? ReportedByUserId { get; set; }
     }
+   
 }
