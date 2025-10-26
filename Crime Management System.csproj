@@ -20,6 +20,7 @@
   <ItemGroup>
     <Folder Include="Controllers\" />
     <Folder Include="DTOs\" />
+    <Folder Include="Models\" />
     <Folder Include="Helper\" />
     <Folder Include="Mapping\" />
     <Folder Include="Servises\" />
