@@ -5,12 +5,13 @@ namespace Crime_Management_System.DTOs
 {
     public class SubmitCrimeReportDto
     {
-       public string? Title { get; set; }
+        public int Id { get; set; }
+        public string? Title { get; set; }
        public string? Description { get; set; }
-        public string? AreaCit { get; set; }
-        decimal? Latitude { get; set; }
-        decimal? Longitude { get; set; }
-        int? ReportedByUserId { get; set; }
+        public string? AreaCity { get; set; }
+        public decimal? Latitude { get; set; }
+        public decimal? Longitude { get; set; }
+        public int? ReportedByUserId { get; set; }
     }
    
 }
