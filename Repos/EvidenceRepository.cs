@@ -22,6 +22,11 @@ namespace Crime_Management_System.Repos
 
         public async Task<IEnumerable<Evidence>> GetDeletedEvidenceAsync() =>
             await _table.Where(e => e.IsSoftDeleted).ToListAsync();
+
+        public Task SaveAsync(Evidence e)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 
