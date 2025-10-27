@@ -6,7 +6,7 @@ namespace Crime_Management_System.Data
     {
         public static void seed(CrimeDbContext db)
         {
-            db.Database.Migrate();
+       
             // Seed default admin user if no users exist
             if (!db.Users.Any())
             {

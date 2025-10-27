@@ -30,6 +30,7 @@ namespace Crime_Management_System
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<CrimeDbContext>();
+                db.Database.Migrate();
                 SeedData.seed(db);
 
             }
