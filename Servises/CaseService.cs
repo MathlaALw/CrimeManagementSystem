@@ -1,8 +1,9 @@
 ﻿using Crime_Management_System.Models;
 
-using CrimeManagementSystem.Services.Interfaces;
+using Crime_Management_System.Services.Interfaces;
+using CrimeManagementSystem.Repositories.Interfaces;
 
-namespace CrimeManagementSystem.Services.Implementations
+namespace Crime_Management_System.Services.Implementations
 {
     public class CaseService : ICaseService
     {

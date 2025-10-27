@@ -1,7 +1,7 @@
 ﻿using Crime_Management_System.Models;
 
 
-namespace CrimeManagementSystem.Services.Interfaces
+namespace Crime_Management_System.Services.Interfaces
 {
     public interface ICaseService
     {

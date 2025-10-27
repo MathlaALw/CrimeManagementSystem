@@ -1,5 +1,6 @@
 ﻿using Crime_Management_System.Models;
 using Microsoft.EntityFrameworkCore;
+using Crime_Management_System.Data;
 
 namespace Crime_Management_System.Data
 {

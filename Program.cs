@@ -1,8 +1,14 @@
 
 using Crime_Management_System.Data;
 using Crime_Management_System.Mapping;
+using Crime_Management_System.Repositories.Implementations;
+using CrimeManagementSystem.Repositories.Interfaces;
+using Crime_Management_System.Services.Implementations;
+using Crime_Management_System.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+
+using Crime_Management_System.Repositories.Interfaces;
 
 namespace Crime_Management_System
 {
@@ -24,15 +30,21 @@ namespace Crime_Management_System
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            // User and Case Repositories and Services
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<ICaseRepository, CaseRepository>();
+
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<ICaseService, CaseService>();
+
             var app = builder.Build();
 
             // Seed the database
             using (var scope = app.Services.CreateScope())
             {
-                var db = scope.ServiceProvider.GetRequiredService<CrimeDbContext>();
+                var db = scope.ServiceProvider.GetRequiredService<Crime_Management_System.Data.CrimeDbContext>();
                 db.Database.Migrate();
                 SeedData.seed(db);
-
             }
 
             // Configure the HTTP request pipeline.
