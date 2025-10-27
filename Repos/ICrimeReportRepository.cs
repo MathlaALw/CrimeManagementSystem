@@ -2,15 +2,14 @@
 
 namespace Crime_Management_System.Repos
 {
-    public interface ICrimeReportRepository
+    public interface ICrimeReportRepository : IGenericRepo<CrimeReport>
     {
-        Task<CrimeReport> CreateAsync(CrimeReport report);
-        Task<bool> DeleteAsync(int id);
-        Task<IEnumerable<CrimeReport>> GetAllAsync();
-        Task<CrimeReport> GetByIdAsync(int id);
-        Task<CrimeReport> GetByReportIdAsync(int reportId);
+        Task<CrimeReport?> GetByReportIdAsync(int reportId);
+        Task<CrimeReport?> GetReadOnlyAsync(int id);
+        Task<bool> ExistsAsync(int id);
         Task<IEnumerable<CrimeReport>> GetPendingReportsAsync();
         Task<IEnumerable<CrimeReport>> GetReportsByCaseAsync(int caseId);
-        Task<CrimeReport> UpdateAsync(CrimeReport report);
+        Task<IEnumerable<CrimeReport>> GetReportsByUserAsync(int userId);
+        Task<IEnumerable<CrimeReport>> SearchReportsAsync(string? searchTerm, string? status);
     }
 }

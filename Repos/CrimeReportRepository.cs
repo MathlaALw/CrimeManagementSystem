@@ -4,75 +4,81 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Crime_Management_System.Repos
 {
-    public class CrimeReportRepository : ICrimeReportRepository
+    public class CrimeReportRepository : GenericRepo<CrimeReport>, ICrimeReportRepository
     {
-        private readonly CrimeDbContext _context;
+        public CrimeReportRepository(CrimeDbContext context) : base(context) { }
 
-        public CrimeReportRepository(CrimeDbContext context)
+        // Get a crime report by its report ID, including the user who reported it
+        public async Task<CrimeReport?> GetByReportIdAsync(int reportId)
         {
-            _context = context;
-        }
-
-        // CRUD Operations
-        // Git By Crime Report Id
-        public async Task<CrimeReport> GetByIdAsync(int id)
-        {
-            return await _context.CrimeReports.FindAsync(id);
-        }
-
-        // Get By Report Id
-        public async Task<CrimeReport> GetByReportIdAsync(int reportId)
-        {
-            return await _context.CrimeReports
+            return await _table
+                .Include(r => r.ReportedByUser)
                 .FirstOrDefaultAsync(r => r.Id == reportId);
         }
 
-        // Get All Crime Reports
-        public async Task<IEnumerable<CrimeReport>> GetAllAsync()
+        // Get a read-only crime report by its ID, including the user who reported it
+        public async Task<CrimeReport?> GetReadOnlyAsync(int id)
         {
-            return await _context.CrimeReports.ToListAsync();
+            return await _table
+                .AsNoTracking()
+                .Include(r => r.ReportedByUser)
+                .FirstOrDefaultAsync(r => r.Id == id);
         }
 
-        // Create Crime Report
-        public async Task<CrimeReport> CreateAsync(CrimeReport report)
+        // Check if a crime report exists by its ID
+        public async Task<bool> ExistsAsync(int id)
         {
-            _context.CrimeReports.Add(report);
-            await _context.SaveChangesAsync();
-            return report;
+            return await _table.AnyAsync(r => r.Id == id);
         }
 
-        // Update Crime Report
-        public async Task<CrimeReport> UpdateAsync(CrimeReport report)
+        // Get all pending crime reports, ordered by report date and time descending
+        public async Task<IEnumerable<CrimeReport>> GetPendingReportsAsync()
         {
-            _context.CrimeReports.Update(report);
-            await _context.SaveChangesAsync();
-            return report;
-        }
-
-        // Delete Crime Report
-        public async Task<bool> DeleteAsync(int id)
-        {
-            var report = await GetByIdAsync(id);
-            if (report == null) return false;
-
-            _context.CrimeReports.Remove(report);
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        // Get Reports By Case Id
-        public async Task<IEnumerable<CrimeReport>> GetReportsByCaseAsync(int caseId)
-        {
-            return await _context.CrimeReports
-                .Where(r => r.Id == caseId)
+            return await _table
+                .Where(r => r.Status == "pending")
+                .OrderByDescending(r => r.ReportDateTime)
                 .ToListAsync();
         }
 
-        // Get Pending Reports
-        public async Task<IEnumerable<CrimeReport>> GetPendingReportsAsync()
+        // Get all crime reports associated with a specific case ID
+        public async Task<IEnumerable<CrimeReport>> GetReportsByCaseAsync(int caseId)
         {
-            return await _context.CrimeReports
-                .Where(r => r.Status == "Pending")
+            return await _table
+                .Where(r => r.CaseReports.Any(cr => cr.CaseId == caseId))
+                .Include(r => r.ReportedByUser)
+                .ToListAsync();
+        }
+
+        // Get all crime reports submitted by a specific user, ordered by report date and time descending
+
+        public async Task<IEnumerable<CrimeReport>> GetReportsByUserAsync(int userId)
+        {
+            return await _table
+                .Where(r => r.ReportedByUserId == userId)
+                .OrderByDescending(r => r.ReportDateTime)
+                .ToListAsync();
+        }
+
+        // Search crime reports by a search term and status, ordered by report date and time descending
+        public async Task<IEnumerable<CrimeReport>> SearchReportsAsync(string? searchTerm, string? status)
+        {
+            var query = _table.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query = query.Where(r =>
+                    r.Title.Contains(searchTerm) ||
+                    r.Description.Contains(searchTerm) ||
+                    r.AreaCity.Contains(searchTerm));
+            }
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                query = query.Where(r => r.Status == status);
+            }
+
+            return await query
+                .OrderByDescending(r => r.ReportDateTime)
                 .ToListAsync();
         }
     }
