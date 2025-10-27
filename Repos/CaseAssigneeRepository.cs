@@ -4,73 +4,46 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Crime_Management_System.Repos
 {
-    public class CaseAssigneeRepository : ICaseAssigneeRepository
+    public class CaseAssigneeRepository : GenericRepo<CaseAssignee>, ICaseAssigneeRepository
     {
-        private readonly CrimeDbContext _context;
+        public CaseAssigneeRepository(CrimeDbContext context) : base(context) { }
 
-        public CaseAssigneeRepository(CrimeDbContext context)
-        {
-            _context = context;
-        }
-
-        // CRUD Operations
-        // Get By Case Assignee Id
-        public async Task<CaseAssignee> GetByIdAsync(int id)
-        {
-            return await _context.CaseAssignees
-                .Include(ca => ca.Case)
-                .Include(ca => ca.UserId)
-                .FirstOrDefaultAsync(ca => ca.Id == id);
-        }
-
-        // Get By Case Id
         public async Task<IEnumerable<CaseAssignee>> GetByCaseIdAsync(int caseId)
         {
-            return await _context.CaseAssignees
-                .Where(ca => ca.CaseId == caseId)
+            return await _table
+                .Include(ca => ca.User)
                 .Include(ca => ca.UserId)
+                .Where(ca => ca.CaseId == caseId)
                 .ToListAsync();
         }
-        // Get By Officer Id
+
         public async Task<IEnumerable<CaseAssignee>> GetByOfficerIdAsync(int officerId)
         {
-            return await _context.CaseAssignees
-                .Where(ca => ca.UserId == officerId)
+            return await _table
                 .Include(ca => ca.Case)
                 .ThenInclude(c => c.CreatedByUser)
+                .Where(ca => ca.UserId == officerId)
                 .ToListAsync();
         }
-        // Create Case Assignee
-        public async Task<CaseAssignee> CreateAsync(CaseAssignee assignment)
-        {
-            _context.CaseAssignees.Add(assignment);
-            await _context.SaveChangesAsync();
-            return assignment;
-        }
 
-        // Delete Case Assignee
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> IsOfficerAssignedToCaseAsync(int caseId, int officerId)
         {
-            var assignment = await GetByIdAsync(id);
-            if (assignment == null) return false;
-
-            _context.CaseAssignees.Remove(assignment);
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        // Check if Officer is Assigned to Case
-        public async Task<bool> OfficerAssignedToCaseAsync(int caseId, int officerId)
-        {
-            return await _context.CaseAssignees
+            return await _table
                 .AnyAsync(ca => ca.CaseId == caseId && ca.UserId == officerId);
         }
 
-        // Get Assignee Count for a Case
         public async Task<int> GetAssigneeCountAsync(int caseId)
         {
-            return await _context.CaseAssignees
+            return await _table
                 .CountAsync(ca => ca.CaseId == caseId);
+        }
+
+        public async Task<CaseAssignee?> GetByCaseAndOfficerAsync(int caseId, int officerId)
+        {
+            return await _table
+                .Include(ca => ca.User)
+                .Include(ca => ca.UserId)
+                .FirstOrDefaultAsync(ca => ca.CaseId == caseId && ca.UserId == officerId);
         }
     }
 }

@@ -4,12 +4,10 @@ namespace Crime_Management_System.Repos
 {
     public interface ICaseAssigneeRepository
     {
-        Task<CaseAssignee> CreateAsync(CaseAssignee assignment);
-        Task<bool> DeleteAsync(int id);
         Task<int> GetAssigneeCountAsync(int caseId);
+        Task<CaseAssignee?> GetByCaseAndOfficerAsync(int caseId, int officerId);
         Task<IEnumerable<CaseAssignee>> GetByCaseIdAsync(int caseId);
-        Task<CaseAssignee> GetByIdAsync(int id);
         Task<IEnumerable<CaseAssignee>> GetByOfficerIdAsync(int officerId);
-        Task<bool> OfficerAssignedToCaseAsync(int caseId, int officerId);
+        Task<bool> IsOfficerAssignedToCaseAsync(int caseId, int officerId);
     }
 }
