@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Crime_Management_System.Data;
-using Crime_Management_System.Repositories.Interfaces;
 
 namespace Crime_Management_System.Repositories.Implementations
 {
@@ -42,6 +41,21 @@ namespace Crime_Management_System.Repositories.Implementations
         public async Task<bool> CaseNumberExistsAsync(string caseNumber)
         {
             return await _table.AnyAsync(c => c.CaseNumber == caseNumber);
+        }
+
+        public Task<Case> CreateAsync(Case caseEntity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> DeleteAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Case> UpdateAsync(Case caseEntity)
+        {
+            throw new NotImplementedException();
         }
     }
 }

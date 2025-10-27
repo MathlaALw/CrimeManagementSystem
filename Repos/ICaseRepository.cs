@@ -1,18 +1,18 @@
 ﻿using Crime_Management_System.Models;
+using System.Collections.Generic;
 
-
-namespace Crime_Management_System.Repositories.Interfaces
+namespace Crime_Management_System.Repositories.Implementations
 {
     public interface ICaseRepository
     {
-        Task<Case> GetByIdAsync(int id);
-        Task<Case> GetByCaseNumberAsync(string caseNumber);
-        Task<IEnumerable<Case>> GetAllAsync();
-        Task<IEnumerable<Case>> GetCasesByUserAsync(int userId);
-        Task<IEnumerable<Case>> GetAssignedCasesAsync(int officerId);
-        Task<Case> CreateAsync(Case caseEntity);
-        Task<Case> UpdateAsync(Case caseEntity);
-        Task<bool> DeleteAsync(int id);
         Task<bool> CaseNumberExistsAsync(string caseNumber);
+        Task<Case> CreateAsync(Case caseEntity);
+        Task<bool> DeleteAsync(int id);
+        Task<IEnumerable<Case>> GetAllAsync();
+        Task<IEnumerable<Case>> GetAssignedCasesAsync(int officerId);
+        Task<Case?> GetByCaseNumberAsync(string caseNumber);
+        Task<Case> GetByIdAsync(int id);
+        Task<IEnumerable<Case>> GetCasesByUserAsync(int userId);
+        Task<Case> UpdateAsync(Case caseEntity);
     }
 }

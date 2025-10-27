@@ -7,13 +7,23 @@ using System.Linq;
 using System.Threading.Tasks;
 using Crime_Management_System.Data;
 
-namespace Crime_Management_System.Repositories.Implementations
+namespace Crime_Management_System.Repos.Implementations
 {
 
     public class UserRepository : GenericRepo<User>, IUserRepository
     {
         public UserRepository(CrimeDbContext context) : base(context)
         {
+        }
+
+        public Task<User> CreateAsync(User user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> DeleteAsync(int id)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<User?> GetByUsernameAsync(string username)
@@ -27,6 +37,11 @@ namespace Crime_Management_System.Repositories.Implementations
             return await _table
                 .Where(u => u.Role.ToString().ToLower() == role.ToLower())
                 .ToListAsync();
+        }
+
+        public Task<User> UpdateAsync(User existingUser)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<bool> UserExistsAsync(string username)

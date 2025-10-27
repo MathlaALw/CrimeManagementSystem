@@ -1,8 +1,7 @@
 
 using Crime_Management_System.Data;
 using Crime_Management_System.Mapping;
-using Crime_Management_System.Repositories.Implementations;
-using Crime_Management_System.Repositories.Interfaces;
+using Crime_Management_System.Repos.Implementations;
 using Crime_Management_System.Services.Implementations;
 using Crime_Management_System.Services.Interfaces;
 using Crime_Management_System.Models;
@@ -10,8 +9,11 @@ using Crime_Management_System.Repos;
 using Crime_Management_System.Servises;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Crime_Management_System.Repos.Implementations;
+using Crime_Management_System.Repos.Implementations;
+using Crime_Management_System.Repositories.Implementations;
 
-using Crime_Management_System.Repositories.Interfaces;
+
 
 namespace Crime_Management_System
 {
@@ -46,9 +48,13 @@ namespace Crime_Management_System
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            // Update the namespace for IUserRepository to match the one used by UserRepository
+           // builder.Services.AddScoped<Crime_Management_System.Repos.Implementations.IUserRepository, UserRepository>();
 
             // User and Case Repositories and Services
             builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+
             builder.Services.AddScoped<ICaseRepository, CaseRepository>();
 
             builder.Services.AddScoped<IUserService, UserService>();
