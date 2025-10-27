@@ -1,9 +1,13 @@
 ﻿using Crime_Management_System.Data;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 namespace Crime_Management_System.Repos
 {
+  
     public class GenericRepo<T> : IGenericRepo<T> where T : class
     {
         protected readonly CrimeDbContext _context;

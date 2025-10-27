@@ -40,5 +40,8 @@ namespace Crime_Management_System.Models
         public ICollection<Evidence> Evidences { get; set; } = new List<Evidence>();
         // one-to-many with CaseReport
         public ICollection<CaseReport> CaseReports { get; set; } = new List<CaseReport>();
+   
     }
+
+
 }
