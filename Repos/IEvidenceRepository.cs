@@ -2,11 +2,14 @@
 
 namespace Crime_Management_System.Repos
 {
-    public interface IEvidenceRepository : IGenericRepo<Evidence>
+    public interface IEvidenceRepository
     {
-        Task<Evidence?> GetWithTrackingAsync(int id);
-        Task<Evidence?> GetReadOnlyAsync(int id);
-        Task<IEnumerable<Evidence>> ListByCaseAsync(int caseId);
+        Task AddAsync(Evidence e);
         Task<IEnumerable<Evidence>> GetDeletedEvidenceAsync();
+        Task<Evidence?> GetReadOnlyAsync(int id);
+        Task<Evidence?> GetWithTrackingAsync(int id);
+        Task<IEnumerable<Evidence>> ListByCaseAsync(int caseId);
+        Task SaveAsync(Evidence e);
+        Task SaveAsync();
     }
 }

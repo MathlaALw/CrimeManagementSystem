@@ -1,6 +1,9 @@
 
 using Crime_Management_System.Data;
 using Crime_Management_System.Mapping;
+using Crime_Management_System.Models;
+using Crime_Management_System.Repos;
+using Crime_Management_System.Servises;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,6 +21,20 @@ namespace Crime_Management_System
             // Configure AutoMapper
             builder.Services.AddAutoMapper(typeof(CrimeMappingProfile));
 
+
+            // Register repositories
+            //builder.Services.AddScoped<IUserRepository, UserRepository>();
+            //builder.Services.AddScoped<ICaseRepository, CaseRepository>();
+            builder.Services.AddScoped<IReportRepo, ReportRepo>();
+            builder.Services.AddScoped<IEvidenceRepository, EvidenceRepository>();
+            builder.Services.AddScoped<IParticipantRepo, ParticipantRepo>();
+
+            // Register services
+            //builder.Services.AddScoped<IUserService, UserService>();
+            //builder.Services.AddScoped<ICaseService, CaseService>();
+            builder.Services.AddScoped<IReportService, ReportService>();
+            builder.Services.AddScoped<IEvidenceService, EvidenceService>();
+            builder.Services.AddScoped<IParticipantService, ParticipantService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

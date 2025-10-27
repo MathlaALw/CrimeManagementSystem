@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Crime_Management_System.Repos
 {
-    public class EvidenceRepository : GenericRepo<Evidence>
+    public class EvidenceRepository : GenericRepo<Evidence>, IEvidenceRepository
     {
         public EvidenceRepository(CrimeDbContext db) : base(db) { }
 
@@ -24,4 +24,4 @@ namespace Crime_Management_System.Repos
             await _table.Where(e => e.IsSoftDeleted).ToListAsync();
     }
 }
-}
+

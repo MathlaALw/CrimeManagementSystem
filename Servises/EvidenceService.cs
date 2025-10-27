@@ -93,12 +93,12 @@ namespace Crime_Management_System.Servises
             return (e.Id, "Image evidence uploaded");
         }
         // Get evidence by id
-        public async Task<Evidence?> GetAsync(int id) => await _repo.GetByIdAsync(id);
+        public async Task<Evidence?> GetAsync(int id) => await _repo.GetReadOnlyAsync(id);
 
         public async Task<(byte[] bytes, string mime)?> GetImageAsync(int id, string rootPath)
         {
             // Get evidence
-            var e = await _repo.GetByIdAsync(id);
+            var e = await _repo.GetReadOnlyAsync(id);
             // Validate
             if (e == null || e.Type != EvidenceType.Image || string.IsNullOrEmpty(e.FileUrl))
                 return null;
@@ -115,7 +115,7 @@ namespace Crime_Management_System.Servises
         // Update evidence (only text content and remarks)
         public async Task<bool> UpdateAsync(int id, UpdateEvidenceDto dto, int actorUserId)
         {
-            var e = await _repo.GetByIdAsync(id);
+            var e = await _repo.GetReadOnlyAsync(id);
             if (e == null) return false;
 
             if (e.Type == EvidenceType.Text)
@@ -142,7 +142,7 @@ namespace Crime_Management_System.Servises
         // Soft delete evidence
         public async Task<bool> SoftDeleteAsync(int id, int actorUserId)
         {
-            var e = await _repo.GetByIdAsync(id);
+            var e = await _repo.GetReadOnlyAsync(id);
             if (e == null) return false;
 
             e.IsSoftDeleted = true;
