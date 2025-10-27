@@ -15,7 +15,7 @@ namespace Crime_Management_System.DTOs
          public  ClearanceLevel AuthorizationLevel { get; set; }
          public  string CreatedBy { get; set; }
          public  DateTime CreatedAt { get; set; }
-         public string? ReportedBy { get; set; }
+         public string? ReportedBy { get; set; } // rebresents the user who reported the crime (via linked CrimeReport)
         public int Assignees { get; set; }
          public int Evidences { get; set; }
         public  int Suspects { get; set; }
