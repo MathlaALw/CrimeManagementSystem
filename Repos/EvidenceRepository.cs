@@ -4,41 +4,24 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Crime_Management_System.Repos
 {
-    public class EvidenceRepository : IEvidenceRepository
+    public class EvidenceRepository : GenericRepo<Evidence>
     {
-        private readonly CrimeDbContext _context;
+        public EvidenceRepository(CrimeDbContext db) : base(db) { }
 
-        public EvidenceRepository(CrimeDbContext context)
-        {
-            _context = context;
-        }
+        public async Task<Evidence?> GetWithTrackingAsync(int id) =>
+            await _table.FirstOrDefaultAsync(e => e.Id == id);
 
-        public async Task<Evidence> GetByIdAsync(int id)
-        {
-            return await _context.Evidences
-                .FirstOrDefaultAsync(e => e.Id == id);
-        }
+        public async Task<Evidence?> GetReadOnlyAsync(int id) =>
+            await _table.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
 
-        public async Task<IEnumerable<Evidence>> GetByCaseIdAsync(int caseId)
-        {
-            return await _context.Evidences
+        public async Task<IEnumerable<Evidence>> ListByCaseAsync(int caseId) =>
+            await _table.AsNoTracking()
                 .Where(e => e.CaseId == caseId && !e.IsSoftDeleted)
+                .OrderByDescending(e => e.Id)
                 .ToListAsync();
-        }
 
-        public async Task<Evidence> CreateAsync(Evidence evidence)
-        {
-            _context.Evidences.Add(evidence);
-            await _context.SaveChangesAsync();
-            return evidence;
-        }
-
-        public async Task<Evidence> UpdateAsync(Evidence evidence)
-        {
-            _context.Evidences.Update(evidence);
-            await _context.SaveChangesAsync();
-            return evidence;
-        }
-
+        public async Task<IEnumerable<Evidence>> GetDeletedEvidenceAsync() =>
+            await _table.Where(e => e.IsSoftDeleted).ToListAsync();
     }
+}
 }
