@@ -1,0 +1,11 @@
+﻿using Crime_Management_System.DTOs;
+using Crime_Management_System.Models;
+
+namespace Crime_Management_System.Servises
+{
+    public interface IParticipantService
+    {
+        Task<bool> AddToCaseAsync(int caseId, AddParticipantToCaseDto dto, int? addedByUserId);
+        Task<Participant> CreateAsync(AddParticipantDto dto);
+    }
+}
