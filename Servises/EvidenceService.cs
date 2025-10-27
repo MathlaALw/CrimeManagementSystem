@@ -34,7 +34,7 @@ namespace Crime_Management_System.Servises
                 Remarks = dto.Remarks
             };
 
-            await _repo.AddAsync(e);
+   
             _db.EvidenceAuditLogs.Add(new EvidenceAuditLog
             {
                 Evidence = e,
@@ -43,7 +43,7 @@ namespace Crime_Management_System.Servises
                 Details = "text"
             });
 
-            await _repo.SaveAsync(e);
+            await _repo.SaveAsync();
             return (e.Id, "Text evidence recorded");
         }
 
@@ -76,8 +76,8 @@ namespace Crime_Management_System.Servises
                 SizeBytes = dto.Image.Length,
                 Remarks = dto.Remarks
             };
-            // Save to DB
-            await _repo.AddAsync(e);
+
+        
             // Add audit log
             _db.EvidenceAuditLogs.Add(new EvidenceAuditLog
             {
@@ -88,6 +88,7 @@ namespace Crime_Management_System.Servises
             });
 
             // Save changes
+            
             await _repo.SaveAsync();
             // Return result
             return (e.Id, "Image evidence uploaded");

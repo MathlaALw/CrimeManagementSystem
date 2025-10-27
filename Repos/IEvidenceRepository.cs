@@ -4,12 +4,10 @@ namespace Crime_Management_System.Repos
 {
     public interface IEvidenceRepository
     {
-        Task<Evidence?> GetWithTrackingAsync(int id);
-        Task<Evidence?> GetReadOnlyAsync(int id);
-        Task<IEnumerable<Evidence>> ListByCaseAsync(int caseId);
         Task<IEnumerable<Evidence>> GetDeletedEvidenceAsync();
-        Task AddAsync(Evidence e);
-        Task SaveAsync(Evidence e);
+        Task<Evidence?> GetReadOnlyAsync(int id);
+        Task<Evidence?> GetWithTrackingAsync(int id);
+        Task<IEnumerable<Evidence>> ListByCaseAsync(int caseId);
         Task SaveAsync();
     }
 }
