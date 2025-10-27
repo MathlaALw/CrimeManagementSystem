@@ -1,7 +1,7 @@
 ﻿using Crime_Management_System.Models;
 
 using Crime_Management_System.Services.Interfaces;
-using CrimeManagementSystem.Repositories.Interfaces;
+using Crime_Management_System.Repositories.Interfaces;
 
 namespace Crime_Management_System.Services.Implementations
 {

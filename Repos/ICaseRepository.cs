@@ -1,7 +1,7 @@
 ﻿using Crime_Management_System.Models;
 
 
-namespace CrimeManagementSystem.Repositories.Interfaces
+namespace Crime_Management_System.Repositories.Interfaces
 {
     public interface ICaseRepository
     {

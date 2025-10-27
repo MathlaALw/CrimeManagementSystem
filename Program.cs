@@ -2,7 +2,7 @@
 using Crime_Management_System.Data;
 using Crime_Management_System.Mapping;
 using Crime_Management_System.Repositories.Implementations;
-using CrimeManagementSystem.Repositories.Interfaces;
+using Crime_Management_System.Repositories.Interfaces;
 using Crime_Management_System.Services.Implementations;
 using Crime_Management_System.Services.Interfaces;
 using Crime_Management_System.Models;

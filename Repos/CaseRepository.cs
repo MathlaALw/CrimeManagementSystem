@@ -1,12 +1,11 @@
 ﻿using Crime_Management_System.Models;
-using Crime_Management_System.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Crime_Management_System.Repos;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Crime_Management_System.Data;
-using CrimeManagementSystem.Repositories.Interfaces;
+using Crime_Management_System.Repositories.Interfaces;
 
 namespace Crime_Management_System.Repositories.Implementations
 {
@@ -18,14 +17,14 @@ namespace Crime_Management_System.Repositories.Implementations
 
         public async Task<Case?> GetByCaseNumberAsync(string caseNumber)
         {
-            return await _dbSet
+            return await _table
                 .Include(c => c.CreatedByUser)
                 .FirstOrDefaultAsync(c => c.CaseNumber == caseNumber);
         }
 
         public async Task<IEnumerable<Case>> GetCasesByUserAsync(int userId)
         {
-            return await _dbSet
+            return await _table
                 .Include(c => c.CreatedByUser)
                 .Where(c => c.CreatedByUserId == userId)
                 .ToListAsync();
@@ -33,7 +32,7 @@ namespace Crime_Management_System.Repositories.Implementations
 
         public async Task<IEnumerable<Case>> GetAssignedCasesAsync(int officerId)
         {
-            return await _dbSet
+            return await _table
                 .Include(c => c.CaseAssignees)
                 .ThenInclude(ca => ca.User)
                 .Where(c => c.CaseAssignees.Any(a => a.UserId == officerId))
@@ -42,7 +41,7 @@ namespace Crime_Management_System.Repositories.Implementations
 
         public async Task<bool> CaseNumberExistsAsync(string caseNumber)
         {
-            return await _dbSet.AnyAsync(c => c.CaseNumber == caseNumber);
+            return await _table.AnyAsync(c => c.CaseNumber == caseNumber);
         }
     }
 }
