@@ -2,6 +2,7 @@
 using Crime_Management_System.Services;
 using Crime_Management_System.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Crime_Management_System.Controllers
 {
@@ -20,7 +21,7 @@ namespace Crime_Management_System.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllCases()
         {
-            var cases = await _caseService.GetAllAsync();
+            var cases = await _caseService.GetAllCasesAsync();
             return Ok(cases);
         }
 
@@ -28,7 +29,7 @@ namespace Crime_Management_System.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCase(int id)
         {
-            var caseItem = await _caseService.GetByIdAsync(id);
+            var caseItem = await _caseService.GetCaseByIdAsync(id);
             if (caseItem == null)
                 return NotFound();
 
@@ -42,7 +43,7 @@ namespace Crime_Management_System.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            await _caseService.AddAsync(caseItem);
+            await _caseService.CreateCaseAsync(caseItem);
             return CreatedAtAction(nameof(GetCase), new { id = caseItem.Id }, caseItem);
         }
 
@@ -53,11 +54,11 @@ namespace Crime_Management_System.Controllers
             if (id != caseItem.Id)
                 return BadRequest("Case ID mismatch");
 
-            var existingCase = await _caseService.GetByIdAsync(id);
+            var existingCase = await _caseService.GetCaseByIdAsync(id);
             if (existingCase == null)
                 return NotFound();
 
-            await _caseService.UpdateAsync(caseItem);
+            await _caseService.UpdateCaseAsync(caseItem);
             return NoContent();
         }
 
@@ -65,11 +66,11 @@ namespace Crime_Management_System.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCase(int id)
         {
-            var caseItem = await _caseService.GetByIdAsync(id);
+            var caseItem = await _caseService.GetCaseByIdAsync(id);
             if (caseItem == null)
                 return NotFound();
 
-            await _caseService.DeleteAsync(id);
+            await _caseService.DeleteCaseAsync(id);
             return NoContent();
         }
     }
