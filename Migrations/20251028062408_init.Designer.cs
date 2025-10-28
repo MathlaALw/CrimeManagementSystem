@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Crime_Management_System.Migrations
 {
     [DbContext(typeof(CrimeDbContext))]
-    [Migration("20251028052238_UpdateCaseModel")]
-    partial class UpdateCaseModel
+    [Migration("20251028062408_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
