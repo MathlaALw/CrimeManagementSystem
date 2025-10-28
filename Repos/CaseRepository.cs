@@ -52,10 +52,29 @@ namespace Crime_Management_System.Repositories.Implementations
 
         public async Task<Case> UpdateAsync(Case caseEntity)
         {
-            _table.Update(caseEntity);
+            var existingCase = await _table
+                .Include(c => c.CaseAssignees)
+                .Include(c => c.CaseParticipants)
+                .Include(c => c.Evidences)
+                .Include(c => c.CaseReports)
+                .FirstOrDefaultAsync(c => c.Id == caseEntity.Id);
+
+            if (existingCase == null)
+                throw new Exception("Case not found");
+
+           
+            existingCase.CaseNumber = caseEntity.CaseNumber;
+            existingCase.Name = caseEntity.Name;
+            existingCase.Description = caseEntity.Description;
+            existingCase.AreaCity = caseEntity.AreaCity;
+            existingCase.CaseType = caseEntity.CaseType;
+            existingCase.AuthorizationLevel = caseEntity.AuthorizationLevel;
+            existingCase.Status = caseEntity.Status;
+
             await _context.SaveChangesAsync();
-            return caseEntity;
+            return existingCase;
         }
+
 
         public async Task<bool> DeleteAsync(int id)
         {

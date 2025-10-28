@@ -21,6 +21,7 @@ namespace Crime_Management_System.Models
         [Required] 
         public ClearanceLevel ClearanceLevel { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; } 
 
         // navigation properties
         // one-to-many with CaseAssignees

@@ -70,9 +70,25 @@ namespace Crime_Management_System.Services.Implementations
             return await _caseRepository.GetAssignedCasesAsync(officerId);
         }
 
-        public Task<Case> UpdateCaseAsync(Case caseEntity)
+        public async Task<Case> UpdateCaseAsync(Case caseEntity)
         {
-            throw new NotImplementedException();
+          
+            var existingCase = await _caseRepository.GetByIdAsync(caseEntity.Id);
+            if (existingCase == null)
+                throw new Exception("Case not found");
+
+            
+            existingCase.CaseNumber = caseEntity.CaseNumber;
+            existingCase.Name = caseEntity.Name;
+            existingCase.Description = caseEntity.Description;
+            existingCase.AreaCity = caseEntity.AreaCity;
+            existingCase.CaseType = caseEntity.CaseType;
+            existingCase.AuthorizationLevel = caseEntity.AuthorizationLevel;
+            existingCase.Status = caseEntity.Status;
+
+           
+            return await _caseRepository.UpdateAsync(existingCase);
         }
+
     }
 }

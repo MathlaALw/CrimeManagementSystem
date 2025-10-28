@@ -71,5 +71,25 @@ namespace Crime_Management_System.Controllers
             await _userService.DeleteUserAsync(id);
             return NoContent();
         }
+
+        // PUT: api/user/5/role
+        [HttpPut("{id}/role")]
+        public async Task<IActionResult> AssignRoleAndClearance(int id, [FromBody] RoleAssignmentDto dto)
+        {
+            var user = await _userService.GetUserByIdAsync(id);
+            if (user == null)
+                return NotFound();
+
+            await _userService.AssignRoleAndClearanceAsync(id, dto.Role, dto.ClearanceLevel);
+            return NoContent();
+        }
+
+        public class RoleAssignmentDto
+        {
+            public UserRole Role { get; set; }
+            public int ClearanceLevel { get; set; }
+        }
     }
+
 }
+
