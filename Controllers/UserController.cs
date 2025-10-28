@@ -20,7 +20,7 @@ namespace Crime_Management_System.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
-            var users = await _userService.GetAllAsync();
+            var users = await _userService.GetAllUsersAsync();
             return Ok(users);
         }
 
@@ -28,7 +28,7 @@ namespace Crime_Management_System.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(int id)
         {
-            var user = await _userService.GetByIdAsync(id);
+            var user = await _userService.GetUserByIdAsync(id);
             if (user == null)
                 return NotFound();
             return Ok(user);
@@ -41,7 +41,7 @@ namespace Crime_Management_System.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            await _userService.AddAsync(user);
+            await _userService.CreateUserAsync(user);
             return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
         }
 
@@ -52,11 +52,11 @@ namespace Crime_Management_System.Controllers
             if (id != user.Id)
                 return BadRequest("User ID mismatch");
 
-            var existingUser = await _userService.GetByIdAsync(id);
+            var existingUser = await _userService.GetUserByIdAsync(id);
             if (existingUser == null)
                 return NotFound();
 
-            await _userService.UpdateAsync(user);
+            await _userService.UpdateUserAsync(user);
             return NoContent();
         }
 
@@ -64,11 +64,11 @@ namespace Crime_Management_System.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            var user = await _userService.GetByIdAsync(id);
+            var user = await _userService.GetUserByIdAsync(id);
             if (user == null)
                 return NotFound();
 
-            await _userService.DeleteAsync(id);
+            await _userService.DeleteUserAsync(id);
             return NoContent();
         }
     }
