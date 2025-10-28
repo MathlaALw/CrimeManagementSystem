@@ -29,9 +29,9 @@ namespace Crime_Management_System.Models
         // navigation properties
 
         // one-to-many with User (CreatedBy)
-        [Required]
+
         public int CreatedByUserId { get; set; }
-        public User CreatedByUser { get; set; } = null!;
+        public User? CreatedByUser { get; set; } 
         // one-to-many with CaseParticipant
         public ICollection<CaseParticipant> CaseParticipants { get; set; } = new List<CaseParticipant>();
         // one-to-many with CaseAssignee
