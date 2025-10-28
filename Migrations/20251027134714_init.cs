@@ -38,7 +38,8 @@ namespace Crime_Management_System.Migrations
                     FullName = table.Column<string>(type: "nvarchar(160)", maxLength: 160, nullable: false),
                     Role = table.Column<int>(type: "int", nullable: false),
                     ClearanceLevel = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {

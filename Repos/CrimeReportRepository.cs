@@ -81,5 +81,15 @@ namespace Crime_Management_System.Repos
                 .OrderByDescending(r => r.ReportDateTime)
                 .ToListAsync();
         }
+
+        public Task<CrimeReport> CreateAsync(CrimeReport report)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<CrimeReport> UpdateAsync(CrimeReport report)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -11,5 +11,7 @@ namespace Crime_Management_System.Repos
         Task<IEnumerable<CrimeReport>> GetReportsByCaseAsync(int caseId);
         Task<IEnumerable<CrimeReport>> GetReportsByUserAsync(int userId);
         Task<IEnumerable<CrimeReport>> SearchReportsAsync(string? searchTerm, string? status);
+        Task<CrimeReport> CreateAsync(CrimeReport report);
+        Task<CrimeReport> UpdateAsync(CrimeReport report);
     }
 }

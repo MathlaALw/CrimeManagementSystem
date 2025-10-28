@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Crime_Management_System.Migrations
 {
     [DbContext(typeof(CrimeDbContext))]
-    [Migration("20251027071017_init")]
+    [Migration("20251027134714_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -354,6 +354,9 @@ namespace Crime_Management_System.Migrations
                         .IsRequired()
                         .HasMaxLength(160)
                         .HasColumnType("nvarchar(160)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()

@@ -45,5 +45,20 @@ namespace Crime_Management_System.Repos
                 .Include(ca => ca.UserId)
                 .FirstOrDefaultAsync(ca => ca.CaseId == caseId && ca.UserId == officerId);
         }
+
+        public Task<CaseAssignee> CreateAsync(CaseAssignee assignment)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> DeleteAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> OfficerAssignedToCaseAsync(int caseId, int officerId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
