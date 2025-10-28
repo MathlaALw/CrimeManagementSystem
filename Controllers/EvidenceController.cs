@@ -13,7 +13,7 @@ namespace Crime_Management_System.Controllers
     public class EvidenceController : ControllerBase
     {
         private readonly IEvidenceService _service;
-        private readonly IWebHostEnvironment _env;
+        private readonly IWebHostEnvironment _env; // To get the root path for file storage
 
         public EvidenceController(IEvidenceService service, IWebHostEnvironment env)
         {
@@ -21,9 +21,12 @@ namespace Crime_Management_System.Controllers
             _env = env;
         }
 
+
+        // Get current user id from claims -> track who is making the changes
         private int CurrentUserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-        [HttpPost("text")]
+        // Create text evidence
+        [HttpPost("Create text evidence")]
         public async Task<IActionResult> CreateText(CreateTextEvidenceDto dto)
         {
             var res = await _service.CreateTextAsync(dto, CurrentUserId);
@@ -32,7 +35,8 @@ namespace Crime_Management_System.Controllers
                 Ok(new { res?.id, res?.message });
         }
 
-        [HttpPost("image")]
+        // Create image evidence
+        [HttpPost("Create image evidence")]
         public async Task<IActionResult> CreateImage([FromForm] CreateImageEvidenceDto dto)
         {
             var res = await _service.CreateImageAsync(dto, CurrentUserId, _env.ContentRootPath);
@@ -41,6 +45,7 @@ namespace Crime_Management_System.Controllers
                 Ok(new { res?.id, res?.message });
         }
 
+        // Get evidence by id
         [HttpGet("Get Evidence by id ")]
         public async Task<IActionResult> Get(int id)
         {
@@ -60,7 +65,8 @@ namespace Crime_Management_System.Controllers
             });
         }
 
-        [HttpGet("{id:int}/image")]
+        // Get image evidence file by Id
+        [HttpGet("Get image evidence file by Id")]
         public async Task<IActionResult> Image(int id)
         {
             var res = await _service.GetImageAsync(id, _env.ContentRootPath);
@@ -69,6 +75,7 @@ namespace Crime_Management_System.Controllers
                 File(res.Value.bytes, res.Value.mime, enableRangeProcessing: true);
         }
 
+        // Update evidence by id
         [HttpPut("Evidence update by  {id:int}")]
         public async Task<IActionResult> Update(int id, UpdateEvidenceDto dto)
         {
@@ -78,7 +85,8 @@ namespace Crime_Management_System.Controllers
                 BadRequest("Invalid request");
         }
 
-        [HttpDelete("{id:int}")]
+        // Soft delete evidence by id
+        [HttpDelete("Soft delete evidence by {id:int}")]
         public async Task<IActionResult> SoftDelete(int id)
         {
             var ok = await _service.SoftDeleteAsync(id, CurrentUserId);
@@ -86,6 +94,10 @@ namespace Crime_Management_System.Controllers
                 Ok(new { message = "Evidence soft-deleted" }) :
                 NotFound();
         }
+
+
+        
+
 
     }
 }
