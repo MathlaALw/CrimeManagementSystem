@@ -3,6 +3,7 @@ using Crime_Management_System.Repositories.Implementations;
 using Crime_Management_System.Services.Interfaces;
 
 using Crime_Management_System.Repos;
+using Crime_Management_System.Repos.Implementations;
 
 
 namespace Crime_Management_System.Services.Implementations
