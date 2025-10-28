@@ -1,8 +1,7 @@
-﻿using Crime_Management_System.Models;
-using Crime_Management_System.Services;
+﻿using Crime_Management_System.DTOs;
+using Crime_Management_System.Models;
 using Crime_Management_System.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Crime_Management_System.Controllers
 {
@@ -38,13 +37,25 @@ namespace Crime_Management_System.Controllers
 
         // POST: api/case
         [HttpPost]
-        public async Task<IActionResult> CreateCase([FromBody] Case caseItem)
+        public async Task<IActionResult> CreateCase([FromBody] CreateCaseDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            await _caseService.CreateCaseAsync(caseItem);
-            return CreatedAtAction(nameof(GetCase), new { id = caseItem.Id }, caseItem);
+            var newCase = new Case
+            {
+                CaseNumber = dto.CaseNumber,
+                Name = dto.Name,
+                Description = dto.Description,
+                AreaCity = dto.AreaCity,
+                CaseType = dto.CaseType,
+                AuthorizationLevel = dto.AuthorizationLevel,
+                Status = dto.Status,
+                CreatedByUserId = dto.CreatedByUserId
+            };
+
+            var created = await _caseService.CreateCaseAsync(newCase);
+            return CreatedAtAction(nameof(GetCase), new { id = created.Id }, created);
         }
 
         // PUT: api/case/5
