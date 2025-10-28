@@ -2,8 +2,6 @@
 using Crime_Management_System.Repos.Implementations;
 using Crime_Management_System.Repositories.Implementations;
 using Crime_Management_System.Data;
-
-using Crime_Management_System.Repositories.Interfaces;
 using Crime_Management_System.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 namespace Crime_Management_System.Services.Implementations
