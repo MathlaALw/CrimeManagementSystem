@@ -43,19 +43,29 @@ namespace Crime_Management_System.Repositories.Implementations
             return await _table.AnyAsync(c => c.CaseNumber == caseNumber);
         }
 
-        public Task<Case> CreateAsync(Case caseEntity)
+        public async Task<Case> CreateAsync(Case caseEntity)
         {
-            throw new NotImplementedException();
+            await _table.AddAsync(caseEntity);
+            await _context.SaveChangesAsync();
+            return caseEntity;
         }
 
-        public Task<bool> DeleteAsync(int id)
+        public async Task<Case> UpdateAsync(Case caseEntity)
         {
-            throw new NotImplementedException();
+            _table.Update(caseEntity);
+            await _context.SaveChangesAsync();
+            return caseEntity;
         }
 
-        public Task<Case> UpdateAsync(Case caseEntity)
+        public async Task<bool> DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            var caseEntity = await _table.FindAsync(id);
+            if (caseEntity == null)
+                return false;
+
+            _table.Remove(caseEntity);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }
