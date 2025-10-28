@@ -16,16 +16,28 @@ namespace Crime_Management_System.Repos.Implementations
         {
         }
 
-        public Task<User> CreateAsync(User user)
+        public async Task<User> CreateAsync(User user)
         {
-            throw new NotImplementedException();
+            await _table.AddAsync(user);
+            await _context.SaveChangesAsync();
+            return user;
         }
-
-        public Task<bool> DeleteAsync(int id)
+        public async Task<User> UpdateAsync(User existingUser)
         {
-            throw new NotImplementedException();
+            _table.Update(existingUser);
+            await _context.SaveChangesAsync();
+            return existingUser;
         }
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var user = await _table.FindAsync(id);
+            if (user == null)
+                return false;
 
+            _table.Remove(user);
+            await _context.SaveChangesAsync();
+            return true;
+        }
         public async Task<User?> GetByUsernameAsync(string username)
         {
             return await _table
@@ -37,11 +49,6 @@ namespace Crime_Management_System.Repos.Implementations
             return await _table
                 .Where(u => u.Role.ToString().ToLower() == role.ToLower())
                 .ToListAsync();
-        }
-
-        public Task<User> UpdateAsync(User existingUser)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<bool> UserExistsAsync(string username)
