@@ -1,11 +1,8 @@
 ﻿using Crime_Management_System.Models;
-using Crime_Management_System.Repos;
-using Crime_Management_System.Repos.Implementations;
 using Crime_Management_System.Repositories.Implementations;
-using Crime_Management_System.Repos.Implementations;
 using Crime_Management_System.Services.Interfaces;
-using Crime_Management_System.Repos.Implementations;
 
+using Crime_Management_System.Repos;
 
 
 namespace Crime_Management_System.Services.Implementations
@@ -19,14 +16,12 @@ namespace Crime_Management_System.Services.Implementations
             _userRepository = userRepository;
         }
 
-     
+
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
-
             return await _userRepository.GetAllAsync();
         }
 
-     
         public async Task<User?> GetUserByIdAsync(int id)
         {
             return await _userRepository.GetByIdAsync(id);
