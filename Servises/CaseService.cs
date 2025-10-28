@@ -1,17 +1,21 @@
 ﻿using Crime_Management_System.Models;
 using Crime_Management_System.Repos.Implementations;
 using Crime_Management_System.Repositories.Implementations;
+using Crime_Management_System.Data;
 
 using Crime_Management_System.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 namespace Crime_Management_System.Services.Implementations
 {
     public class CaseService : ICaseService
     {
         private readonly ICaseRepository _caseRepository;
+        private readonly CrimeDbContext _dbContext;
 
-        public CaseService(ICaseRepository caseRepository)
+        public CaseService(ICaseRepository caseRepository, CrimeDbContext dbContext) // Corrected parameter name
         {
             _caseRepository = caseRepository;
+            _dbContext = dbContext; // Corrected to use the parameter name
         }
 
         public async Task<IEnumerable<Case>> GetAllCasesAsync()
@@ -32,9 +36,24 @@ namespace Crime_Management_System.Services.Implementations
             return await _caseRepository.CreateAsync(caseEntity);
         }
 
-        public async Task<Case> UpdateCaseAsync(Case caseEntity)
+        public async Task<Case> UpdateAsync(Case caseEntity)
         {
-            return await _caseRepository.UpdateAsync(caseEntity);
+            var existingCase = await _dbContext.Cases // Corrected dbContext to _dbContext
+                .FirstOrDefaultAsync(c => c.Id == caseEntity.Id);
+
+            if (existingCase == null)
+                throw new Exception("Case not found");
+
+            existingCase.CaseNumber = caseEntity.CaseNumber;
+            existingCase.Name = caseEntity.Name;
+            existingCase.Description = caseEntity.Description;
+            existingCase.AreaCity = caseEntity.AreaCity;
+            existingCase.CaseType = caseEntity.CaseType;
+            existingCase.AuthorizationLevel = caseEntity.AuthorizationLevel;
+            existingCase.Status = caseEntity.Status;
+
+            await _dbContext.SaveChangesAsync(); // Corrected dbContext to _dbContext
+            return existingCase;
         }
 
         public async Task<bool> DeleteCaseAsync(int id)
@@ -50,6 +69,11 @@ namespace Crime_Management_System.Services.Implementations
         public async Task<IEnumerable<Case>> GetAssignedCasesAsync(int officerId)
         {
             return await _caseRepository.GetAssignedCasesAsync(officerId);
+        }
+
+        public Task<Case> UpdateCaseAsync(Case caseEntity)
+        {
+            throw new NotImplementedException();
         }
     }
 }
