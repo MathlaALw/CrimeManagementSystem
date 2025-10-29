@@ -28,6 +28,8 @@ namespace Crime_Management_System.DTOs
 
         [Required]
         public int CreatedByUserId { get; set; }
+        public List<int> CrimeReportIds { get; set; }
+
     }
 
 }
