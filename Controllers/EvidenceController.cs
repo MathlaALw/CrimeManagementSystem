@@ -102,6 +102,8 @@ namespace Crime_Management_System.Controllers
             return ok ?
                 Ok(new { message = "Evidence updated" }) :
                 BadRequest("Invalid request");
+
+
         }
 
         // Soft delete evidence by id
