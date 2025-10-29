@@ -17,6 +17,7 @@ namespace Crime_Management_System.Models
         public string? Description { get; set; }
         [MaxLength(80)] 
         public string? AreaCity { get; set; }
+        public string Salt { get; set; }
         [MaxLength(80)] 
         public string? CaseType { get; set; }
         [Required] 
