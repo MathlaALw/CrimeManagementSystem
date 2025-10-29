@@ -28,30 +28,35 @@ namespace Crime_Management_System.Services.Implementations
             return await _userRepository.GetByIdAsync(id);
         }
 
-        
+
         public async Task<User?> GetUserByUsernameAsync(string username)
         {
             return await _userRepository.GetByUsernameAsync(username);
         }
 
-      
+
         public async Task<User> CreateUserAsync(User user)
         {
-            // Check if username already exists
-            bool exists = await _userRepository.UserExistsAsync(user.Username);
-            if (exists)
+            if (await _userRepository.UserExistsAsync(user.Username))
                 throw new Exception("Username already exists.");
 
-            // Hash the password before saving
+            var existingEmail = await _userRepository.GetByEmailAsync(user.Email);
+            if (existingEmail != null)
+                throw new Exception("Email already exists.");
+
+
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.PasswordHash);
             user.CreatedAt = DateTime.UtcNow;
+            user.IsActive = true;
 
             return await _userRepository.CreateAsync(user);
         }
 
-        //  Update user
+
+
         public async Task<User> UpdateUserAsync(User user)
         {
+
             var existingUser = await _userRepository.GetByIdAsync(user.Id);
             if (existingUser == null)
                 throw new Exception("User not found.");
@@ -61,6 +66,7 @@ namespace Crime_Management_System.Services.Implementations
             existingUser.Role = user.Role;
             existingUser.ClearanceLevel = user.ClearanceLevel;
             existingUser.IsActive = user.IsActive;
+            existingUser.UpdatedAt = DateTime.UtcNow;
 
             return await _userRepository.UpdateAsync(existingUser);
         }
@@ -70,6 +76,19 @@ namespace Crime_Management_System.Services.Implementations
             return await _userRepository.DeleteAsync(id);
         }
 
+
+        public async Task<bool> AssignRoleAndClearanceAsync(int userId, UserRole role, int clearanceLevel)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                throw new Exception("User not found.");
+
+            user.Role = role;
+            user.ClearanceLevel = (ClearanceLevel)clearanceLevel;
+            await _userRepository.UpdateAsync(user);
+
+            return true;
+        }
 
         public async Task AssignRoleAsync(int userId, UserRole role)
         {
@@ -82,20 +101,22 @@ namespace Crime_Management_System.Services.Implementations
         }
 
 
-        public async Task<IEnumerable<User>> GetUsersByRoleAsync(UserRole role)
+        public async Task<IEnumerable<User>> GetUsersByRoleAsync(string role)
         {
-            return await _userRepository.GetUsersByRoleAsync(role.ToString());
+            return await _userRepository.GetUsersByRoleAsync(role);
         }
 
- 
+
+
         public bool ValidatePassword(User user, string password)
         {
             return BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
         }
 
-        public Task<IEnumerable<User>> GetUsersByRoleAsync(string role)
+
+        Task IUserService.AssignRoleAndClearanceAsync(int id, UserRole role, int clearanceLevel)
         {
-            throw new NotImplementedException();
+            return AssignRoleAndClearanceAsync(id, role, clearanceLevel);
         }
     }
 }

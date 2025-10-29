@@ -10,5 +10,6 @@ namespace Crime_Management_System.Services.Interfaces
         Task<User> UpdateUserAsync(User user);
         Task<bool> DeleteUserAsync(int id);
         Task<IEnumerable<User>> GetUsersByRoleAsync(string role);
+        Task AssignRoleAndClearanceAsync(int id, UserRole role, int clearanceLevel);
     }
 }

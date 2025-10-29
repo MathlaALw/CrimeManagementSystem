@@ -12,18 +12,35 @@ namespace Crime_Management_System.Repos.Implementations
 
     public class UserRepository : GenericRepo<User>, IUserRepository
     {
+        private readonly CrimeDbContext _context;
+
         public UserRepository(CrimeDbContext context) : base(context)
         {
+            _context = context;
         }
 
         public async Task<User> CreateAsync(User user)
         {
+            user.CreatedAt = DateTime.UtcNow;
+
             await _table.AddAsync(user);
             await _context.SaveChangesAsync();
             return user;
         }
-        public async Task<User> UpdateAsync(User existingUser)
+        public async Task<User?> UpdateAsync(User updatedUser)
         {
+            var existingUser = await _table.FindAsync(updatedUser.Id);
+            if (existingUser == null)
+                return null;
+
+            existingUser.FullName = updatedUser.FullName;
+            existingUser.Email = updatedUser.Email;
+            existingUser.Username = updatedUser.Username;
+            existingUser.Role = updatedUser.Role;
+            existingUser.ClearanceLevel = updatedUser.ClearanceLevel;
+            existingUser.IsActive = updatedUser.IsActive;
+            existingUser.UpdatedAt = DateTime.UtcNow;
+
             _table.Update(existingUser);
             await _context.SaveChangesAsync();
             return existingUser;
@@ -38,6 +55,7 @@ namespace Crime_Management_System.Repos.Implementations
             await _context.SaveChangesAsync();
             return true;
         }
+
         public async Task<User?> GetByUsernameAsync(string username)
         {
             return await _table
@@ -51,9 +69,34 @@ namespace Crime_Management_System.Repos.Implementations
                 .ToListAsync();
         }
 
+        public async Task<bool> AssignRoleAndClearanceAsync(int userId, int role, int clearanceLevel)
+        {
+            var user = await _table.FindAsync(userId);
+            if (user == null)
+                return false;
+
+            user.Role = (UserRole)role;
+            user.ClearanceLevel = (ClearanceLevel)clearanceLevel;
+
+            _table.Update(user);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        public async Task<User?> GetByEmailAsync(string email)
+        {
+            return await _table.FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+        }
+        
         public async Task<bool> UserExistsAsync(string username)
         {
             return await _table.AnyAsync(u => u.Username.ToLower() == username.ToLower());
         }
+        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        {
+            return await _table.OrderByDescending(u => u.CreatedAt).ToListAsync();
+        }
+
+        
+
     }
 }
