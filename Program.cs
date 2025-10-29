@@ -1,4 +1,4 @@
-
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Crime_Management_System.Data;
 using Crime_Management_System.Mapping;
 using Crime_Management_System.Repos.Implementations;
@@ -11,6 +11,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Crime_Management_System.Repos.Implementations;
 using Crime_Management_System.Repositories.Implementations;
+using Crime_Management_System.Middleware;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 
 
@@ -35,6 +38,28 @@ namespace Crime_Management_System
             builder.Services.AddScoped<IReportRepo, ReportRepo>();
             builder.Services.AddScoped<IEvidenceRepository, EvidenceRepository>();
             builder.Services.AddScoped<IParticipantRepo, ParticipantRepo>();
+            builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+            builder.Services.AddScoped<JwtService>();
+
+
+
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                        ValidAudience = builder.Configuration["Jwt:Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]))
+                    };
+                });
+            builder.Services.AddAuthorization();
+
 
             // Register services
             //builder.Services.AddScoped<IUserService, UserService>();
@@ -75,8 +100,10 @@ namespace Crime_Management_System
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            app.UseMiddleware<JwtMiddleware>(); // Custom middleware for token extraction
 
             app.UseHttpsRedirection();
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
