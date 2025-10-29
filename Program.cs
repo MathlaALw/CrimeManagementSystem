@@ -27,7 +27,7 @@ namespace Crime_Management_System
 
             // Configure DbContext with SQL Server
             builder.Services.AddDbContext<CrimeDbContext>(o =>
-            o.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+            o.UseSqlServer(builder.Configuration.GetConnectionString("CrimeDb")));
             // Configure AutoMapper
             builder.Services.AddAutoMapper(typeof(CrimeMappingProfile));
 

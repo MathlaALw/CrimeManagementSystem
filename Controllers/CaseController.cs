@@ -1,31 +1,35 @@
-﻿using Crime_Management_System.DTOs;
+﻿using Crime_Management_System.Attributes;
+using Crime_Management_System.DTOs;
 using Crime_Management_System.Models;
 using Crime_Management_System.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Crime_Management_System.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-    public class CaseController : ControllerBase
+    [Route("api/[controller]")]
+    [AuthorizeRoles("Admin", "Investigator")] 
+    public class CasesController : ControllerBase
     {
         private readonly ICaseService _caseService;
 
-        public CaseController(ICaseService caseService)
+        public CasesController(ICaseService caseService)
         {
             _caseService = caseService;
         }
 
-        // GET: api/case
+        // GET: api/cases
         [HttpGet]
-        public async Task<IActionResult> GetAllCases()
+        [AuthorizeRoles("Admin", "Investigator", "Officer")] 
+        public async Task<IActionResult> GetCases()
         {
             var cases = await _caseService.GetAllCasesAsync();
             return Ok(cases);
         }
 
-        // GET: api/case/5
+        // GET: api/cases/5
         [HttpGet("{id}")]
+        [AuthorizeRoles("Admin", "Investigator", "Officer")]
         public async Task<IActionResult> GetCase(int id)
         {
             var caseItem = await _caseService.GetCaseByIdAsync(id);
@@ -35,8 +39,10 @@ namespace Crime_Management_System.Controllers
             return Ok(caseItem);
         }
 
-        // POST: api/case
+        // POST: api/cases
         [HttpPost]
+        [AuthorizeRoles("Admin", "Investigator")]
+        [ClearanceLevel("medium")] 
         public async Task<IActionResult> CreateCase([FromBody] CreateCaseDto dto)
         {
             if (!ModelState.IsValid)
@@ -58,8 +64,10 @@ namespace Crime_Management_System.Controllers
             return CreatedAtAction(nameof(GetCase), new { id = created.Id }, created);
         }
 
-        // PUT: api/case/5
+        // PUT: api/cases/5
         [HttpPut("{id}")]
+        [AuthorizeRoles("Admin", "Investigator")]
+        [ClearanceLevel("medium")]
         public async Task<IActionResult> UpdateCase(int id, [FromBody] Case caseItem)
         {
             if (id != caseItem.Id)
@@ -73,8 +81,10 @@ namespace Crime_Management_System.Controllers
             return NoContent();
         }
 
-        // DELETE: api/case/5
+        // DELETE: api/cases/5
         [HttpDelete("{id}")]
+        [AuthorizeRoles("Admin")]
+        [ClearanceLevel("high")] 
         public async Task<IActionResult> DeleteCase(int id)
         {
             var caseItem = await _caseService.GetCaseByIdAsync(id);
@@ -83,6 +93,15 @@ namespace Crime_Management_System.Controllers
 
             await _caseService.DeleteCaseAsync(id);
             return NoContent();
+        }
+
+        // GET: api/cases/public/report
+        [HttpGet("public/report")]
+        [AllowAnonymous] 
+        public IActionResult ReportCrime()
+        {
+           
+            return Ok("Crime report endpoint (public).");
         }
     }
 }

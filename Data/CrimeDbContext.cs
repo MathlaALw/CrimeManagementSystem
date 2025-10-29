@@ -1,6 +1,7 @@
 ﻿using Crime_Management_System.Models;
 using Microsoft.EntityFrameworkCore;
 using Crime_Management_System.Data;
+using System.Reflection.Emit;
 
 namespace Crime_Management_System.Data
 {
@@ -55,6 +56,16 @@ namespace Crime_Management_System.Data
 
             b.Entity<EvidenceAuditLog>().HasOne(ea => ea.Evidence).WithMany(e => e.AuditLogs).HasForeignKey(ea => ea.EvidenceId).OnDelete(DeleteBehavior.Cascade);
             b.Entity<EvidenceAuditLog>().HasOne(ea => ea.ActedByUser).WithMany(u => u.EvidenceAuditLogs).HasForeignKey(ea => ea.ActedByUserId).OnDelete(DeleteBehavior.NoAction);
+
+            b.Entity<CrimeReport>()
+           .Property(c => c.Latitude)
+           .HasPrecision(18, 8); 
+
+            b.Entity<CrimeReport>()
+                .Property(c => c.Longitude)
+            .HasPrecision(18, 8);
+
+            base.OnModelCreating(b);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace Crime_Management_System.Models
+﻿
+namespace Crime_Management_System.Models
+
 {
     public class AuthResponse
     {
