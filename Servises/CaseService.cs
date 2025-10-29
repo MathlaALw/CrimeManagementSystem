@@ -35,25 +35,7 @@ namespace Crime_Management_System.Services.Implementations
             return await _caseRepository.CreateAsync(caseEntity);
         }
 
-        public async Task<Case> UpdateAsync(Case caseEntity)
-        {
-            var existingCase = await _dbContext.Cases // Corrected dbContext to _dbContext
-                .FirstOrDefaultAsync(c => c.Id == caseEntity.Id);
 
-            if (existingCase == null)
-                throw new Exception("Case not found");
-
-            existingCase.CaseNumber = caseEntity.CaseNumber;
-            existingCase.Name = caseEntity.Name;
-            existingCase.Description = caseEntity.Description;
-            existingCase.AreaCity = caseEntity.AreaCity;
-            existingCase.CaseType = caseEntity.CaseType;
-            existingCase.AuthorizationLevel = caseEntity.AuthorizationLevel;
-            existingCase.Status = caseEntity.Status;
-
-            await _dbContext.SaveChangesAsync(); // Corrected dbContext to _dbContext
-            return existingCase;
-        }
 
         public async Task<bool> DeleteCaseAsync(int id)
         {
