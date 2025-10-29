@@ -10,7 +10,6 @@ using Crime_Management_System.Servises;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Crime_Management_System.Repos.Implementations;
-using Crime_Management_System.Repos.Implementations;
 using Crime_Management_System.Repositories.Implementations;
 
 
@@ -66,7 +65,7 @@ namespace Crime_Management_System
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<Crime_Management_System.Data.CrimeDbContext>();
-                db.Database.Migrate();
+               // db.Database.Migrate();
                 SeedData.seed(db);
             }
 
