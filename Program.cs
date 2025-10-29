@@ -8,12 +8,11 @@ using Crime_Management_System.Models;
 using Crime_Management_System.Repos;
 using Crime_Management_System.Servises;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Crime_Management_System.Repos.Implementations;
 using Crime_Management_System.Repositories.Implementations;
 using Crime_Management_System.Middleware;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Crime_Management_System.Helper;
 
 
 
@@ -73,7 +72,7 @@ namespace Crime_Management_System
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             // Update the namespace for IUserRepository to match the one used by UserRepository
-           // builder.Services.AddScoped<Crime_Management_System.Repos.Implementations.IUserRepository, UserRepository>();
+            // builder.Services.AddScoped<Crime_Management_System.Repos.Implementations.IUserRepository, UserRepository>();
 
             // User and Case Repositories and Services
             builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -90,26 +89,43 @@ namespace Crime_Management_System
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<Crime_Management_System.Data.CrimeDbContext>();
-               // db.Database.Migrate();
+                // db.Database.Migrate();
                 SeedData.seed(db);
             }
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+            using (var scope = app.Services.CreateScope())
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
+                var db = scope.ServiceProvider.GetRequiredService<CrimeDbContext>();
+
+                foreach (var user in db.Users)
+                {
+                    if (string.IsNullOrEmpty(user.Salt))
+                    {
+                        user.Salt = SecurityHelper.GenerateSalt();
+                        user.PasswordHash = SecurityHelper.HashPassword(user.PasswordHash + user.Salt);
+                    }
+                
+                }
+                db.SaveChanges();
+
+
+                // Configure the HTTP request pipeline.
+                if (app.Environment.IsDevelopment())
+                {
+                    app.UseSwagger();
+                    app.UseSwaggerUI();
+                }
+                app.UseMiddleware<JwtMiddleware>(); // Custom middleware for token extraction
+
+                app.UseHttpsRedirection();
+                app.UseAuthentication();
+
+                app.UseAuthorization();
+
+                app.MapControllers();
+
+                app.Run();
             }
-            app.UseMiddleware<JwtMiddleware>(); // Custom middleware for token extraction
-
-            app.UseHttpsRedirection();
-            app.UseAuthentication();
-
-            app.UseAuthorization();
-
-            app.MapControllers();
-
-            app.Run();
         }
     }
 }

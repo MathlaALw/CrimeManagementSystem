@@ -79,41 +79,34 @@ namespace Crime_Management_System.Services.Implementations
 
         public async Task<UserResponseDto> CreateUserAsync(CreateUserDto createUserDto, string createdByAdmin)
         {
-            // Check if username already exists
             if (await _db.Users.AnyAsync(u => u.Username == createUserDto.Username))
-            {
                 throw new InvalidOperationException($"Username '{createUserDto.Username}' already exists");
-            }
 
-            // Validate clearance level for role
             if (!ValidateClearanceLevelForRole(createUserDto.Role, createUserDto.ClearanceLevel))
-            {
                 throw new InvalidOperationException($"Clearance level '{createUserDto.ClearanceLevel}' is not valid for role '{createUserDto.Role}'");
-            }
 
-            // Hash password (without salt storage)
-            string passwordHash = HashPassword(createUserDto.Password);
+            
+            string salt = GenerateSalt();
 
-            // Create user entity
+        
+            string passwordHash = HashPassword(createUserDto.Password + salt);
+
             var user = new User
             {
                 Username = createUserDto.Username,
                 PasswordHash = passwordHash,
+                Salt = salt,
                 Role = createUserDto.Role,
                 ClearanceLevel = createUserDto.ClearanceLevel,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
 
-
-            // Add to database
             _db.Users.Add(user);
             await _db.SaveChangesAsync();
 
-            _logger.LogInformation("User {Username} created by admin {AdminUsername}",
-                createUserDto.Username, createdByAdmin);
+            _logger.LogInformation("User {Username} created by admin {AdminUsername}", createUserDto.Username, createdByAdmin);
 
-            // Return response DTO
             return new UserResponseDto
             {
                 Id = user.Id,
@@ -126,11 +119,12 @@ namespace Crime_Management_System.Services.Implementations
         }
 
 
-        private string HashPassword(string password)
+
+        private string HashPassword(string passwordWithSalt)
         {
             // Simple hashing without salt storage
             using var sha256 = SHA256.Create();
-            var bytes = Encoding.UTF8.GetBytes(password);
+            var bytes = Encoding.UTF8.GetBytes(passwordWithSalt);
             var hash = sha256.ComputeHash(bytes);
             return Convert.ToBase64String(hash);
         }
@@ -280,6 +274,7 @@ namespace Crime_Management_System.Services.Implementations
         }
 
 
+
         Task IUserService.AssignRoleAndClearanceAsync(int id, UserRole role, int clearanceLevel)
         {
             return AssignRoleAndClearanceAsync(id, role, clearanceLevel);
@@ -309,5 +304,16 @@ namespace Crime_Management_System.Services.Implementations
         {
             throw new NotImplementedException();
         }
+        public static string GenerateSalt(int size = 16)
+{
+          var saltBytes = new byte[size];
+          using (var rng = RandomNumberGenerator.Create())
+    {
+        rng.GetBytes(saltBytes);
     }
+    return Convert.ToBase64String(saltBytes);
+}
+
+    }
+
 }

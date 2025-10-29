@@ -51,6 +51,9 @@ namespace Crime_Management_System.Controllers
             return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
         }
 
+
+
+
         // PUT: api/user/5
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] User user)
