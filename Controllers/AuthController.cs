@@ -29,7 +29,7 @@ namespace Crime_Management_System.Controllers
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
             var user = await _userService.GetByUsernameOrEmailAsync(dto.UsernameOrEmail);
-            if (user == null || !_userService.ValidatePassword(dto.Password, user.PasswordHash))
+            if (user == null || !_userService.ValidatePassword(dto.Password, user.PasswordHash, user.Salt))
             {
                 return Unauthorized(new { message = "Invalid username or password" });
             }

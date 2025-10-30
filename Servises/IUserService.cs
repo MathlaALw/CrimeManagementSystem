@@ -14,6 +14,6 @@ namespace Crime_Management_System.Services.Interfaces
         Task AssignRoleAndClearanceAsync(int id, UserRole role, int clearanceLevel);
 
         Task<User?> GetByUsernameOrEmailAsync(string usernameOrEmail);
-        bool ValidatePassword(string password, string passwordHash);
+        bool ValidatePassword(string password, string passwordHash, string salt);
     }
 }

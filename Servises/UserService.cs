@@ -270,9 +270,12 @@ namespace Crime_Management_System.Services.Implementations
 
 
         // Validate password using BCrypt
-        public bool ValidatePassword(string password, string passwordHash)
+        public bool ValidatePassword(string password , string passwordHash, string salt)
         {
-            return BCrypt.Net.BCrypt.Verify(password, passwordHash);
+            var hashToCheck = Convert.ToBase64String(
+         SHA256.HashData(Encoding.UTF8.GetBytes(password + salt))
+     );
+            return hashToCheck == passwordHash;
         }
 
         // Create a new user with BCrypt hash
@@ -344,6 +347,11 @@ namespace Crime_Management_System.Services.Implementations
         }
 
         Task<User> IUserService.CreateUserAsync(CreateUserDto createUserDto, string createdByAdmin)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool ValidatePassword(string password, string passwordHash)
         {
             throw new NotImplementedException();
         }
