@@ -26,6 +26,8 @@
 
   <ItemGroup>
     <Folder Include="Mapping\" />
+    <Folder Include="Servises\NewFolder1\" />
+    <Folder Include="Servises\NewFolder\" />
   </ItemGroup>
 
 </Project>

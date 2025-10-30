@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Crime_Management_System.Servises
 {
-    public class JwtService
+    public class JwtService : IJwtService
     {
         private readonly string _secretKey;
         private readonly string _issuer;

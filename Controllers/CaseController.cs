@@ -57,10 +57,18 @@ namespace Crime_Management_System.Controllers
                 CaseType = dto.CaseType,
                 AuthorizationLevel = dto.AuthorizationLevel,
                 Status = dto.Status,
-                CreatedByUserId = dto.CreatedByUserId
+                CreatedByUserId = dto.CreatedByUserId,
+                CaseReports = new List<CaseReport>()
             };
+            if (dto.CrimeReportIds != null && dto.CrimeReportIds.Any())
+            {
+                newCase.CaseReports = dto.CrimeReportIds
+                    .Select(id => new CaseReport { CaseId = id, Case = newCase })
+                    .ToList();
+            }
 
             var created = await _caseService.CreateCaseAsync(newCase);
+
             return CreatedAtAction(nameof(GetCase), new { id = created.Id }, created);
         }
 
@@ -68,7 +76,8 @@ namespace Crime_Management_System.Controllers
         [HttpPut("{id}")]
         [AuthorizeRoles("Admin", "Investigator")]
         [ClearanceLevel("medium")]
-        public async Task<IActionResult> UpdateCase(int id, [FromBody] Case caseItem)
+        public async Task<IActionResult> l
+           (int id, [FromBody] Case caseItem)
         {
             if (id != caseItem.Id)
                 return BadRequest("Case ID mismatch");

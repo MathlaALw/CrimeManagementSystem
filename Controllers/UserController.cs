@@ -2,19 +2,25 @@
 using Crime_Management_System.Services;
 using Crime_Management_System.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Crime_Management_System.DTOs;
+using Crime_Management_System.Attributes;
 
 namespace Crime_Management_System.Controllers
 {
+    [AuthorizeRoles("Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
 
+
         public UserController(IUserService userService)
         {
             _userService = userService;
         }
+
+
 
         // GET: api/user
         [HttpGet]
@@ -44,6 +50,9 @@ namespace Crime_Management_System.Controllers
             await _userService.CreateUserAsync(user);
             return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
         }
+
+
+
 
         // PUT: api/user/5
         [HttpPut("{id}")]
@@ -84,6 +93,8 @@ namespace Crime_Management_System.Controllers
             return NoContent();
         }
 
+    }
+
         public class RoleAssignmentDto
         {
             public UserRole Role { get; set; }
@@ -91,5 +102,5 @@ namespace Crime_Management_System.Controllers
         }
     }
 
-}
+
 
