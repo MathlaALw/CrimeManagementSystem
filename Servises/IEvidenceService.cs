@@ -11,5 +11,6 @@ namespace Crime_Management_System.Servises
         Task<(byte[] bytes, string mime)?> GetImageAsync(int id, string rootPath);
         Task<bool> SoftDeleteAsync(int id, int actorUserId);
         Task<bool> UpdateAsync(int id, UpdateEvidenceDto dto, int actorUserId);
+        Task<bool> HardDeleteAsync(int id, int actorUserId, string rootPath);
     }
 }
