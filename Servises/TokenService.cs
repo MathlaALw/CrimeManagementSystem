@@ -17,24 +17,18 @@ namespace Crime_Management_System.Servises
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var expires = DateTime.UtcNow.AddMinutes(_jwt.AccessTokenMinutes);
-
-            var claims = new List<Claim>
-            {
-                new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new(JwtRegisteredClaimNames.UniqueName, user.Username),
-                new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new(ClaimTypes.Role, user.Role.ToString()) // e.g., "Admin", "Investigator", "Officer"
-            };
-
             var token = new JwtSecurityToken(
                 issuer: _jwt.Issuer,
                 audience: _jwt.Audience,
-                claims: claims,
-                expires: expires,
+                claims: new[] {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Role, user.Role.ToString())
+                },
+                expires: DateTime.UtcNow.AddMinutes(_jwt.AccessTokenMinutes),
                 signingCredentials: creds);
 
-            return (new JwtSecurityTokenHandler().WriteToken(token), expires);
+            return (new JwtSecurityTokenHandler().WriteToken(token), token.ValidTo);
         }
     }
 }

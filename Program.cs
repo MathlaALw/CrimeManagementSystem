@@ -14,6 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Crime_Management_System.Helper;
 using Microsoft.OpenApi.Models;
+using System.Security.Claims;
 
 
 
@@ -47,7 +48,7 @@ namespace Crime_Management_System
             builder.Services.AddScoped<IParticipantService, ParticipantService>();
             builder.Services.AddScoped<IPasswordService, PasswordService>();
             builder.Services.AddScoped<ITokenService, TokenService>();
-            builder.Services.AddScoped<JwtService>(); // scoped, safe now with middleware fix
+            // builder.Services.AddScoped<JwtService>(); // scoped, safe now with middleware fix
 
             // ---------- JWT CONFIG ----------
             var jwtSection = builder.Configuration.GetSection("Jwt");
@@ -73,14 +74,19 @@ namespace Crime_Management_System
                         ValidateIssuerSigningKey = true,
                         IssuerSigningKey = signingKey,
                         ValidateLifetime = true,
-                        ClockSkew = TimeSpan.FromMinutes(1)
+                        ClockSkew = TimeSpan.FromMinutes(1),
+                        RoleClaimType = ClaimTypes.Role,        // <- important
+                        NameClaimType = ClaimTypes.NameIdentifier
                     };
                 });
 
             builder.Services.AddAuthorization(options =>
             {
-                options.AddPolicy("RequireAdmin", p => p.RequireRole("Admin"));
-                options.AddPolicy("InvestigatorOrAbove", p => p.RequireRole("Admin", "Investigator"));
+                   options.AddPolicy("OfficerOrHigher",
+                   p => p.RequireRole("Officer", "Investigator", "Admin"));
+
+                  options.AddPolicy("InvestigatorOrAbove",
+                  p => p.RequireRole("Investigator", "Admin"));
             });
 
             // ---------- SWAGGER ----------
@@ -122,11 +128,11 @@ namespace Crime_Management_System
             }
 
             app.UseHttpsRedirection();
-
+            app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseMiddleware<JwtMiddleware>(); // fixed
+           // app.UseMiddleware<JwtMiddleware>(); // fixed
 
             app.MapControllers();
 

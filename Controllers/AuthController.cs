@@ -15,14 +15,17 @@ namespace Crime_Management_System.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;
-        private readonly JwtService _jwtService;
+        //private readonly JwtService _jwtService;
         private readonly CrimeDbContext _db;
+        private readonly ITokenService _tokens;
 
-        public AuthController(IUserService userService, JwtService jwtService ,CrimeDbContext crimeDbContext)
+
+        public AuthController(IUserService userService,CrimeDbContext crimeDbContext,ITokenService token)
         {
             _userService = userService;
-            _jwtService = jwtService;
+            //_jwtService = jwtService;
             _db = crimeDbContext;
+            _tokens = token;
         }
 
         [HttpPost("login")]
@@ -34,9 +37,11 @@ namespace Crime_Management_System.Controllers
                 return Unauthorized(new { message = "Invalid username or password" });
             }
 
-            var token = _jwtService.GenerateToken(user);
+            //var token = _jwtService.GenerateToken(user);
+            var (token, expires) = _tokens.CreateAccessToken(user);
 
-            return Ok(new { token });
+            //return Ok(new { token });
+            return Ok(new { accessToken = token, expiresAtUtc = expires, tokenType = "Bearer" });
         }
 
         [HttpPost("register")]
