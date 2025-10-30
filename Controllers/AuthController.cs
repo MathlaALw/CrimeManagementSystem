@@ -17,49 +17,49 @@ namespace Crime_Management_System.Controllers
         {
             private readonly JwtService _jwtService;
             private readonly CrimeDbContext _context;
+            private readonly IPasswordService _passwords;
+            private readonly ITokenService _tokens;
 
-            public AuthController(JwtService jwtService, CrimeDbContext context)
+        public AuthController(JwtService jwtService, CrimeDbContext context, IPasswordService passwords, ITokenService tokens)
             {
                 _jwtService = jwtService;
                 _context = context;
-            }
+                _passwords = passwords;
+                _tokens = tokens;
+
+
+        }
 
             [HttpPost("login")]
             [AllowAnonymous]
-            public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.UsernameOrEmail) || string.IsNullOrWhiteSpace(dto.Password))
+                return Unauthorized();
+
+            var user = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u =>
+                    u.Username == dto.UsernameOrEmail || u.Email == dto.UsernameOrEmail);
+
+            if (user == null || !user.IsActive)
+                return Unauthorized();
+
+            if (!_passwords.Verify(user.PasswordHash, dto.Password))
+                return Unauthorized();
+
+            var (token, expires) = _tokens.CreateAccessToken(user);
+
+            return Ok(new AuthResponseDto
             {
-                // Find user by username
-                var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Username == request.Username && u.IsActive);
+                AccessToken = token,
+                ExpiresAtUtc = expires
+            });
+        }
 
-                if (user == null)
-                {
-                    return Unauthorized(new { message = "Invalid credentials" });
-                }
-
-                // In real implementation, you'd retrieve the salt from database
-                // For demo, we'll assume salt is stored with user or use a fixed approach
-                byte[] salt = GetUserSalt(user); // You need to implement this based on your storage
-
-                // Verify password
-                if (!PasswordHelper.VerifyPassword(request.Password, user.PasswordHash, salt))
-                {
-                    return Unauthorized(new { message = "Invalid credentials" });
-                }
-
-                // Generate token
-                var token = _jwtService.GenerateToken(user);
-
-                return Ok(new AuthResponse
-                {
-                    Token = token,
-                    Role = user.Role.ToString(),
-                    ClearanceLevel = user.ClearanceLevel.ToString(),
-                    ExpiresAt = DateTime.UtcNow.AddMinutes(60)
-                });
-            }
 
             [HttpPost("register")]
+            [AllowAnonymous]
             [AuthorizeRoles("Admin")]
             public async Task<ActionResult> Register([FromBody] UserRegistrationRequest request)
             {
