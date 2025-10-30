@@ -8,9 +8,10 @@ using AutoMapper;
 
 namespace Crime_Management_System.Controllers
 {
+
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize(AuthenticationSchemes = "Basic", Policy = "OfficerOrHigher")]
+    [Authorize(Policy = "OfficerOrHigher")]
     public class EvidenceController : ControllerBase
     {
         private readonly IEvidenceService _service;
@@ -108,6 +109,7 @@ namespace Crime_Management_System.Controllers
 
         // Soft delete evidence by id
         [HttpDelete("Soft delete evidence by {id:int}")]
+        [Authorize(Roles = "Admin,Investigator")]
         public async Task<IActionResult> SoftDelete(int id)
         {
             var ok = await _service.SoftDeleteAsync(id, CurrentUserId);
@@ -116,8 +118,39 @@ namespace Crime_Management_System.Controllers
                 NotFound();
         }
 
+        // Hard delete evidence with confirmation
+        [HttpPost("{id}/hard-delete/confirm")]
+        [Authorize(AuthenticationSchemes = "Basic", Policy = "AdminOrInvestigator")]
+        public async Task<IActionResult> ConfirmHardDelete(int id, [FromBody] HardDeleteConfirmationDto confirmation)
+        {
+            if (confirmation?.Confirmation != "yes")
+            {
+                return BadRequest(new
+                {
+                    message = $"Are you sure you want to permanently delete Evidence ID: {id}? (yes/no)",
+                    requires_confirmation = true
+                });
+            }
 
-        
+            var result = await _service.HardDeleteAsync(id, CurrentUserId, _env.ContentRootPath);
+
+            return result ?
+                Ok(new { message = "Evidence permanently deleted" }) :
+                NotFound(new { message = "Evidence not found or unauthorized" });
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(AuthenticationSchemes = "Basic", Policy = "AdminOrInvestigator")]
+        public async Task<IActionResult> FinalizeHardDelete(int id)
+        {
+            // This endpoint should only be called after confirmation
+            return BadRequest(new
+            {
+                message = "Hard delete requires confirmation. Use POST /api/evidence/{id}/hard-delete/confirm first."
+            });
+        }
+
+
 
 
     }

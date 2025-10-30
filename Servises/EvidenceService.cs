@@ -160,5 +160,45 @@ namespace Crime_Management_System.Servises
             await _repo.SaveAsync();
             return true;
         }
+
+        // Hard delete evidence
+        public async Task<bool> HardDeleteAsync(int id, int actorUserId, string rootPath)
+        {
+            var evidence = await _repo.GetReadOnlyAsync(id);
+            if (evidence == null) return false;
+
+            // Check permissions - only Admin and Investigator can hard delete
+            var user = await _db.Users.FindAsync(actorUserId);
+            if (user?.Role is (UserRole.Admin) or (UserRole.Investigator))
+            {
+                // Delete physical file if it's an image
+                if (evidence.Type == EvidenceType.Image && !string.IsNullOrEmpty(evidence.FileUrl))
+                {
+                    var physicalPath = Path.Combine(rootPath, evidence.FileUrl.TrimStart('/'));
+                    if (File.Exists(physicalPath))
+                    {
+                        File.Delete(physicalPath);
+                    }
+                }
+
+                // Create audit log before deletion
+                _db.EvidenceAuditLogs.Add(new EvidenceAuditLog
+                {
+                    EvidenceId = evidence.Id,
+                    ActedByUserId = actorUserId,
+                    Action = "hard_delete",
+                    Details = "permanent_deletion",
+                    ActedAt = DateTime.UtcNow
+                });
+
+                // Remove from database
+                _db.Evidences.Remove(evidence);
+                await _repo.SaveAsync();
+
+                return true;
+            }
+
+            return false;
+        }
     }
 }
