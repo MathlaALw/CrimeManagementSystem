@@ -96,7 +96,15 @@ namespace Crime_Management_System.Repos.Implementations
             return await _table.OrderByDescending(u => u.CreatedAt).ToListAsync();
         }
 
-        
+        // GetByUsernameOrEmail
+        public async Task<User?> GetByUsernameOrEmailAsync(string usernameOrEmail)
+        {
+            return await _table
+                .FirstOrDefaultAsync(u => u.Username.ToLower() == usernameOrEmail.ToLower()
+                                        || u.Email.ToLower() == usernameOrEmail.ToLower());
+        }
 
+
+       
     }
 }

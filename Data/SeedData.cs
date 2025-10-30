@@ -21,6 +21,17 @@ namespace Crime_Management_System.Data
                     CreatedAt = DateTime.UtcNow
                 });
 
+                db.Users.Add(new User
+                {
+                    Username = "admin2",
+                    Email = "admin2@crime.local",
+                    FullName = "Default Admin",
+                    Role = UserRole.Admin,
+                    ClearanceLevel = ClearanceLevel.Critical,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin2@123"),
+                    CreatedAt = DateTime.UtcNow
+                });
+
                 db.SaveChanges();
                 Console.WriteLine("Seeded default admin user.");
             }

@@ -14,5 +14,6 @@ namespace Crime_Management_System.Repos.Implementations
         Task<User> UpdateAsync(User existingUser);
         Task<bool> DeleteAsync(int id);
         Task<User?> GetByEmailAsync(string email);
+        Task<User?> GetByUsernameOrEmailAsync(string usernameOrEmail);
     }
 }

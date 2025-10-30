@@ -42,15 +42,18 @@ namespace Crime_Management_System.Controllers
 
         // POST: api/user
         [HttpPost]
-        public async Task<IActionResult> CreateUser([FromBody] User user)
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserDto createUserDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            await _userService.CreateUserAsync(user);
-            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
-        }
+            // You need the current admin username or some creator identifier
+            var adminUsername = User.Identity?.Name ?? "system";
 
+            var result = await _userService.CreateUserAsync(createUserDto, adminUsername);
+
+            return CreatedAtAction(nameof(GetUser), new { id = result.Id }, result);
+        }
 
 
 

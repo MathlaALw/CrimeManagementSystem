@@ -25,31 +25,44 @@ namespace Crime_Management_System
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Configure DbContext with SQL Server
+            // ---------- DATABASE ----------
             builder.Services.AddDbContext<CrimeDbContext>(o =>
-            o.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-            // Configure AutoMapper
+                o.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            // ---------- AUTOMAPPER ----------
             builder.Services.AddAutoMapper(typeof(CrimeMappingProfile));
 
-
-            // Register repositories
-            //builder.Services.AddScoped<IUserRepository, UserRepository>();
-            //builder.Services.AddScoped<ICaseRepository, CaseRepository>();
+            // ---------- REPOSITORIES ----------
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<ICaseRepository, CaseRepository>();
             builder.Services.AddScoped<IReportRepo, ReportRepo>();
             builder.Services.AddScoped<IEvidenceRepository, EvidenceRepository>();
             builder.Services.AddScoped<IParticipantRepo, ParticipantRepo>();
 
+            // ---------- SERVICES ----------
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<ICaseService, CaseService>();
+            builder.Services.AddScoped<IReportService, ReportService>();
+            builder.Services.AddScoped<IEvidenceService, EvidenceService>();
+            builder.Services.AddScoped<IParticipantService, ParticipantService>();
+            builder.Services.AddScoped<IPasswordService, PasswordService>();
+            builder.Services.AddScoped<ITokenService, TokenService>();
+            builder.Services.AddScoped<JwtService>(); // scoped, safe now with middleware fix
+
+            // ---------- JWT CONFIG ----------
             var jwtSection = builder.Configuration.GetSection("Jwt");
             builder.Services.Configure<JwtSettings>(jwtSection);
-            var jwt = jwtSection.Get<JwtSettings>()!;
+            var jwt = jwtSection.Get<JwtSettings>();
+
+            if (string.IsNullOrEmpty(jwt?.Key))
+                throw new InvalidOperationException("JWT Key is missing in appsettings.json");
 
             var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key));
 
-            builder.Services
-                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
-                    options.RequireHttpsMetadata = false; // true in production behind HTTPS
+                    options.RequireHttpsMetadata = false;
                     options.SaveToken = true;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
@@ -70,30 +83,12 @@ namespace Crime_Management_System
                 options.AddPolicy("InvestigatorOrAbove", p => p.RequireRole("Admin", "Investigator"));
             });
 
-
-
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
-                {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-                        ValidAudience = builder.Configuration["Jwt:Audience"],
-                        IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]))
-                    };
-                });
-                builder.Services.AddAuthorization();
-
-            // Swagger + Bearer
-               builder.Services.AddEndpointsApiExplorer();
-               builder.Services.AddSwaggerGen(c =>
-                {
+            // ---------- SWAGGER ----------
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen(c =>
+            {
                 c.SwaggerDoc("v1", new() { Title = "Crime Management API", Version = "v1" });
+
                 var scheme = new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
@@ -108,75 +103,35 @@ namespace Crime_Management_System
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement { { scheme, Array.Empty<string>() } });
             });
 
-            // Register services
-            //builder.Services.AddScoped<IUserService, UserService>();
-            //builder.Services.AddScoped<ICaseService, CaseService>();
-            builder.Services.AddScoped<IReportService, ReportService>();
-            builder.Services.AddScoped<IEvidenceService, EvidenceService>();
-            builder.Services.AddScoped<IParticipantService, ParticipantService>();
-
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-            // Update the namespace for IUserRepository to match the one used by UserRepository
-            // builder.Services.AddScoped<Crime_Management_System.Repos.Implementations.IUserRepository, UserRepository>();
-
-            // User and Case Repositories and Services
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
-
-
-            builder.Services.AddScoped<ICaseRepository, CaseRepository>();
-
-            builder.Services.AddScoped<IUserService, UserService>();
-            builder.Services.AddScoped<ICaseService, CaseService>();
-
-            builder.Services.AddScoped<IPasswordService,PasswordService>();
-            builder.Services.AddScoped<ITokenService, TokenService>();
 
             var app = builder.Build();
 
-            // Seed the database
-            using (var scope = app.Services.CreateScope())
-            {
-                var db = scope.ServiceProvider.GetRequiredService<Crime_Management_System.Data.CrimeDbContext>();
-                // db.Database.Migrate();
-                SeedData.seed(db);
-            }
-
+            // ---------- SEED DATA ----------
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<CrimeDbContext>();
-
-                foreach (var user in db.Users)
-                {
-                    if (string.IsNullOrEmpty(user.Salt))
-                    {
-                        user.Salt = SecurityHelper.GenerateSalt();
-                        user.PasswordHash = SecurityHelper.HashPassword(user.PasswordHash + user.Salt);
-                    }
-                
-                }
-                db.SaveChanges();
-
-
-                // Configure the HTTP request pipeline.
-                if (app.Environment.IsDevelopment())
-                {
-                    app.UseSwagger();
-                    app.UseSwaggerUI();
-                }
-                app.UseMiddleware<JwtMiddleware>(); // Custom middleware for token extraction
-
-                app.UseHttpsRedirection();
-                app.UseAuthentication();
-           
-                app.UseAuthorization();
-
-                app.MapControllers();
-
-                app.Run();
+                SeedData.seed(db);
             }
+
+            // ---------- MIDDLEWARE ----------
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
+
+            app.UseHttpsRedirection();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.UseMiddleware<JwtMiddleware>(); // fixed
+
+            app.MapControllers();
+
+            app.Run();
         }
+        
     }
 }

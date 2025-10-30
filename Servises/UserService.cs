@@ -82,21 +82,24 @@ namespace Crime_Management_System.Services.Implementations
             if (await _db.Users.AnyAsync(u => u.Username == createUserDto.Username))
                 throw new InvalidOperationException($"Username '{createUserDto.Username}' already exists");
 
-            if (!ValidateClearanceLevelForRole(createUserDto.Role, createUserDto.ClearanceLevel))
-                throw new InvalidOperationException($"Clearance level '{createUserDto.ClearanceLevel}' is not valid for role '{createUserDto.Role}'");
+            if (!Enum.TryParse<UserRole>(createUserDto.Role, true, out var role))
+                throw new InvalidOperationException($"Invalid role value: {createUserDto.Role}");
 
-            
-            string salt = GenerateSalt();
+            // 1️⃣ Generate a salt
+            var salt = GenerateSalt();
 
-        
-            string passwordHash = HashPassword(createUserDto.Password + salt);
+            // 2️⃣ Hash the password + salt
+            var passwordHash = HashPassword(createUserDto.Password + salt);
 
+            // 3️⃣ Assign both hash and salt to the User object
             var user = new User
             {
                 Username = createUserDto.Username,
+                FullName = createUserDto.FullName,
+                Email = createUserDto.Email,
                 PasswordHash = passwordHash,
-                Salt = salt,
-                Role = createUserDto.Role,
+                Salt = salt,  // must not be null
+                Role = role,
                 ClearanceLevel = createUserDto.ClearanceLevel,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
@@ -104,8 +107,6 @@ namespace Crime_Management_System.Services.Implementations
 
             _db.Users.Add(user);
             await _db.SaveChangesAsync();
-
-            _logger.LogInformation("User {Username} created by admin {AdminUsername}", createUserDto.Username, createdByAdmin);
 
             return new UserResponseDto
             {
@@ -268,10 +269,37 @@ namespace Crime_Management_System.Services.Implementations
 
 
 
-        public bool ValidatePassword(User user, string password)
+        // Validate password using BCrypt
+        public bool ValidatePassword(string password, string passwordHash)
         {
-            return BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
+            return BCrypt.Net.BCrypt.Verify(password, passwordHash);
         }
+
+        // Create a new user with BCrypt hash
+        //public async Task<User> CreateUserAsync(CreateUserDto dto)
+        //{
+        //    if (await _userRepository.UserExistsAsync(dto.Username))
+        //        throw new InvalidOperationException("Username already exists");
+
+        //    string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+
+        //    var user = new User
+        //    {
+        //        Username = dto.Username,
+        //        Email = dto.Email,
+        //        PasswordHash = passwordHash,
+        //        Role = dto.Role,
+        //        ClearanceLevel = dto.ClearanceLevel,
+        //        IsActive = true,
+        //        CreatedAt = DateTime.UtcNow
+        //    };
+
+        //    await _userRepository.CreateAsync(user);
+
+        //    _logger.LogInformation("User {Username} created", user.Username);
+
+        //    return user;
+        //}
 
 
 
@@ -279,12 +307,6 @@ namespace Crime_Management_System.Services.Implementations
         {
             return AssignRoleAndClearanceAsync(id, role, clearanceLevel);
         }
-
-        public Task<User> CreateUserAsync(User user)
-        {
-            throw new NotImplementedException();
-        }
-
         Task<IEnumerable<User>> IUserService.GetAllUsersAsync()
         {
             throw new NotImplementedException();
@@ -305,15 +327,26 @@ namespace Crime_Management_System.Services.Implementations
             throw new NotImplementedException();
         }
         public static string GenerateSalt(int size = 16)
-{
-          var saltBytes = new byte[size];
-          using (var rng = RandomNumberGenerator.Create())
-    {
-        rng.GetBytes(saltBytes);
-    }
-    return Convert.ToBase64String(saltBytes);
-}
+        {
+            var saltBytes = new byte[size];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(saltBytes);
+            }
+            return Convert.ToBase64String(saltBytes);
+        }
 
+
+        // Get user by username/email (async)
+        public async Task<User?> GetByUsernameOrEmailAsync(string usernameOrEmail)
+        {
+            return await _userRepository.GetByUsernameOrEmailAsync(usernameOrEmail);
+        }
+
+        Task<User> IUserService.CreateUserAsync(CreateUserDto createUserDto, string createdByAdmin)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 }

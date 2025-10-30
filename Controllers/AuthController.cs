@@ -1,102 +1,89 @@
-﻿using Crime_Management_System.Attributes;
-using Crime_Management_System.Data;
-using Crime_Management_System.Helper;
+﻿using Crime_Management_System.DTOs;
 using Crime_Management_System.Models;
 using Crime_Management_System.Servises;
-using Crime_Management_System.DTOs;
-using Microsoft.EntityFrameworkCore;
+using Crime_Management_System.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
+using Crime_Management_System.Attributes;
+using Crime_Management_System.Data;
+using Crime_Management_System.Services.Implementations;
 
 namespace Crime_Management_System.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AuthController : ControllerBase
+    {
+        private readonly IUserService _userService;
+        private readonly JwtService _jwtService;
+        private readonly CrimeDbContext _db;
 
-        // Controllers/AuthController.cs
-        [ApiController]
-        [Route("api/[controller]")]
-        public class AuthController : ControllerBase
+        public AuthController(IUserService userService, JwtService jwtService ,CrimeDbContext crimeDbContext)
         {
-            private readonly JwtService _jwtService;
-            private readonly CrimeDbContext _context;
-            private readonly IPasswordService _passwords;
-            private readonly ITokenService _tokens;
-
-        public AuthController(JwtService jwtService, CrimeDbContext context, IPasswordService passwords, ITokenService tokens)
-            {
-                _jwtService = jwtService;
-                _context = context;
-                _passwords = passwords;
-                _tokens = tokens;
-
-
+            _userService = userService;
+            _jwtService = jwtService;
+            _db = crimeDbContext;
         }
 
-            [HttpPost("login")]
-            [AllowAnonymous]
+        [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.UsernameOrEmail) || string.IsNullOrWhiteSpace(dto.Password))
-                return Unauthorized();
-
-            var user = await _context.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u =>
-                    u.Username == dto.UsernameOrEmail || u.Email == dto.UsernameOrEmail);
-
-            if (user == null || !user.IsActive)
-                return Unauthorized();
-
-            if (!_passwords.Verify(user.PasswordHash, dto.Password))
-                return Unauthorized();
-
-            var (token, expires) = _tokens.CreateAccessToken(user);
-
-            return Ok(new AuthResponseDto
+            var user = await _userService.GetByUsernameOrEmailAsync(dto.UsernameOrEmail);
+            if (user == null || !_userService.ValidatePassword(dto.Password, user.PasswordHash))
             {
-                AccessToken = token,
-                ExpiresAtUtc = expires
-            });
+                return Unauthorized(new { message = "Invalid username or password" });
+            }
+
+            var token = _jwtService.GenerateToken(user);
+
+            return Ok(new { token });
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] CreateUserDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // Map string to enum safely
+            if (!Enum.TryParse<UserRole>(request.Role, true, out var role))
+            {
+                return BadRequest(new { message = "Invalid role value." });
+            }
+
+            // Generate salt
+            var salt = UserService.GenerateSalt();
+
+            // Hash password + salt
+            var passwordHash = Convert.ToBase64String(
+                System.Security.Cryptography.SHA256.HashData(
+                    System.Text.Encoding.UTF8.GetBytes(request.Password + salt)
+                )
+            );
+
+            var user = new User
+            {
+                Username = request.Username,
+                Email = request.Email,
+                FullName = request.FullName,
+                PasswordHash = passwordHash,
+                Salt = salt,  // ← MUST assign!
+                Role = role,
+                ClearanceLevel = (ClearanceLevel)request.ClearanceLevel,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _db.Users.AddAsync(user);
+            await _db.SaveChangesAsync();
+
+            return Ok(new { message = "User registered successfully", userId = user.Id });
         }
 
 
-            [HttpPost("register")]
-            [AllowAnonymous]
-            [AuthorizeRoles("Admin")]
-            public async Task<ActionResult> Register([FromBody] UserRegistrationRequest request)
-            {
-                // Check if username exists
-                if (await _context.Users.AnyAsync(u => u.Username == request.Username))
-                {
-                    return BadRequest(new { message = "Username already exists" });
-                }
-
-                // Generate salt and hash password
-                byte[] salt = PasswordHelper.GenerateSalt();
-                string passwordHash = PasswordHelper.HashPassword(request.Password, salt);
-
-                var user = new User
-                {
-                    Username = request.Username,
-                    PasswordHash = passwordHash,
-                    Role = Enum.Parse<UserRole>(request.Role, true), // Convert string to UserRole enum
-                    ClearanceLevel = Enum.Parse<ClearanceLevel>(request.ClearanceLevel, true), // Convert string to ClearanceLevel enum
-                    IsActive = true
-                };
-
-                // Store salt with user (you need to add Salt field to User model)
-                // user.Salt = Convert.ToBase64String(salt);
-
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
-
-                return Ok(new { message = "User registered successfully" });
-            }
-
-            private byte[] GetUserSalt(User user)
-            {
-                // Implement based on how you store salt
-                // This is a placeholder - you need to store and retrieve salt properly
-                return Convert.FromBase64String("default-salt-base64-here");
-            }
-        }
     }
+
+
+
+}
 
