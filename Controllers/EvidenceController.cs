@@ -11,7 +11,7 @@ namespace Crime_Management_System.Controllers
 
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Policy = "OfficerOrHigher")]
+    [Authorize(Policy = "InvestigatorOrAbove")]
     public class EvidenceController : ControllerBase
     {
         private readonly IEvidenceService _service;
@@ -42,6 +42,7 @@ namespace Crime_Management_System.Controllers
         }
         // Create text evidence
         [HttpPost("Create text evidence")]
+
         public async Task<IActionResult> CreateText(CreateTextEvidenceDto dto)
         {
             if (dto is null) return BadRequest("Payload is required.");
@@ -96,20 +97,20 @@ namespace Crime_Management_System.Controllers
         }
 
         // Update evidence by id
-        [HttpPut("Evidence update by  {id:int}")]
-        public async Task<IActionResult> Update(int id, UpdateEvidenceDto dto)
+        // [FromBody] <-- read dto from JSON body
+        // [FromRoute] <-- read id from the URL path
+
+        [HttpPut("Update Evidence by Evidence {id:int}")]
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateEvidenceDto dto)
         {
             var ok = await _service.UpdateAsync(id, dto, CurrentUserId);
-            return ok ?
-                Ok(new { message = "Evidence updated" }) :
-                BadRequest("Invalid request");
-
-
+            return ok ? Ok(new { message = "Evidence updated" }) : BadRequest("Invalid request");
         }
 
+
         // Soft delete evidence by id
-        [HttpDelete("Soft delete evidence by {id:int}")]
-        [Authorize(Roles = "Admin,Investigator")]
+        [HttpDelete("{id:int}/soft")]
+        [Authorize(Policy = "InvestigatorOrAbove")]
         public async Task<IActionResult> SoftDelete(int id)
         {
             var ok = await _service.SoftDeleteAsync(id, CurrentUserId);
@@ -119,8 +120,10 @@ namespace Crime_Management_System.Controllers
         }
 
         // Hard delete evidence with confirmation
+        //  -> requiring high clearance 
         [HttpPost("{id}/hard-delete/confirm")]
-        [Authorize(AuthenticationSchemes = "Basic", Policy = "AdminOrInvestigator")]
+        [Authorize(Policy = "InvestigatorOrAbove")]
+        [Authorize(Policy = "ClearanceHighOrAbove")]
         public async Task<IActionResult> ConfirmHardDelete(int id, [FromBody] HardDeleteConfirmationDto confirmation)
         {
             if (confirmation?.Confirmation != "yes")
@@ -139,16 +142,16 @@ namespace Crime_Management_System.Controllers
                 NotFound(new { message = "Evidence not found or unauthorized" });
         }
 
-        [HttpDelete("{id}")]
-        [Authorize(AuthenticationSchemes = "Basic", Policy = "AdminOrInvestigator")]
-        public async Task<IActionResult> FinalizeHardDelete(int id)
-        {
-            // This endpoint should only be called after confirmation
-            return BadRequest(new
-            {
-                message = "Hard delete requires confirmation. Use POST /api/evidence/{id}/hard-delete/confirm first."
-            });
-        }
+        //[HttpDelete("{id}")]
+        //[Authorize(Policy = "InvestigatorOrAbove")]
+        //public async Task<IActionResult> FinalizeHardDelete(int id)
+        //{
+        //    // This endpoint should only be called after confirmation
+        //    return BadRequest(new
+        //    {
+        //        message = "Hard delete requires confirmation. Use POST /api/evidence/{id}/hard-delete/confirm first."
+        //    });
+        //}
 
 
 
