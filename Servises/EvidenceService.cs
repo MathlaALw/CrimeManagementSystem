@@ -193,7 +193,7 @@ namespace Crime_Management_System.Servises
 
                 // Remove from database
                 _db.Evidences.Remove(evidence);
-                await _repo.SaveAsync();
+                await _db.SaveChangesAsync();
 
                 return true;
             }

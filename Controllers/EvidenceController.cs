@@ -142,16 +142,16 @@ namespace Crime_Management_System.Controllers
                 NotFound(new { message = "Evidence not found or unauthorized" });
         }
 
-        //[HttpDelete("{id}")]
-        //[Authorize(Policy = "InvestigatorOrAbove")]
-        //public async Task<IActionResult> FinalizeHardDelete(int id)
-        //{
-        //    // This endpoint should only be called after confirmation
-        //    return BadRequest(new
-        //    {
-        //        message = "Hard delete requires confirmation. Use POST /api/evidence/{id}/hard-delete/confirm first."
-        //    });
-        //}
+        [HttpDelete("{id}")]
+        [Authorize(Policy = "InvestigatorOrAbove")]
+        public async Task<IActionResult> FinalizeHardDelete(int id)
+        {
+            // This endpoint should only be called after confirmation
+            return BadRequest(new
+            {
+                message = "Hard delete requires confirmation. Use POST /api/evidence/{id}/hard-delete/confirm first."
+            });
+        }
 
 
 
