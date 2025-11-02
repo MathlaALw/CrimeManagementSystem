@@ -87,6 +87,22 @@ namespace Crime_Management_System
 
                   options.AddPolicy("InvestigatorOrAbove",
                   p => p.RequireRole("Investigator", "Admin"));
+
+
+                // Clearance (string-based comparisons)
+                options.AddPolicy("ClearanceMediumOrAbove", p => p.RequireAssertion(ctx =>
+                {
+                    var c = ctx.User.FindFirst("ClearanceLevel")?.Value?.ToLowerInvariant();
+                    return c is "medium" or "high" or "critical";
+                }));
+
+                options.AddPolicy("ClearanceHighOrAbove", p => p.RequireAssertion(ctx =>
+                {
+                    var c = ctx.User.FindFirst("ClearanceLevel")?.Value?.ToLowerInvariant();
+                    return c is "high" or "critical";
+                }));
+
+                options.AddPolicy("ClearanceCriticalOnly", p => p.RequireClaim("ClearanceLevel", "Critical", "critical"));
             });
 
             // ---------- SWAGGER ----------

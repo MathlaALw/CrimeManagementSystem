@@ -116,7 +116,7 @@ namespace Crime_Management_System.Servises
         // Update evidence (only text content and remarks)
         public async Task<bool> UpdateAsync(int id, UpdateEvidenceDto dto, int actorUserId)
         {
-            var e = await _repo.GetReadOnlyAsync(id);
+            var e = await _db.Evidences.FirstOrDefaultAsync(x => x.Id == id);
             if (e == null) return false;
 
             if (e.Type == EvidenceType.Text)
@@ -143,7 +143,7 @@ namespace Crime_Management_System.Servises
         // Soft delete evidence
         public async Task<bool> SoftDeleteAsync(int id, int actorUserId)
         {
-            var e = await _repo.GetReadOnlyAsync(id);
+            var e = await _db.Evidences.FirstOrDefaultAsync(x => x.Id == id);
             if (e == null) return false;
 
             e.IsSoftDeleted = true;
@@ -157,7 +157,7 @@ namespace Crime_Management_System.Servises
                 Details = "soft"
             });
 
-            await _repo.SaveAsync();
+            await _db.SaveChangesAsync();
             return true;
         }
 
@@ -193,7 +193,7 @@ namespace Crime_Management_System.Servises
 
                 // Remove from database
                 _db.Evidences.Remove(evidence);
-                await _repo.SaveAsync();
+                await _db.SaveChangesAsync();
 
                 return true;
             }
