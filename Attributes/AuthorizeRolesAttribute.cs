@@ -58,38 +58,45 @@ namespace Crime_Management_System.Attributes
                 _requiredLevel = requiredLevel;
             }
 
-            public void OnAuthorization(AuthorizationFilterContext context)
-            {
-                var user = context.HttpContext.User;
-                var userClearance = user.FindFirst("ClearanceLevel")?.Value;
+        public void OnAuthorization(AuthorizationFilterContext context)
+        {
+            var user = context.HttpContext.User;
+            var userClearance = user.FindFirst("ClearanceLevel")?.Value;
 
-                if (!HasSufficientClearance(userClearance, _requiredLevel))
-                {
-                    context.Result = new JsonResult(new { message = "Forbidden - Insufficient clearance level" })
-                    {
-                        StatusCode = StatusCodes.Status403Forbidden
-                    };
-                }
-            }
+        
+            Console.WriteLine($"User clearance from token: '{userClearance}', Required: '{_requiredLevel}'");
 
-            private bool HasSufficientClearance(string userLevel, string requiredLevel)
+            if (!HasSufficientClearance(userClearance, _requiredLevel))
             {
-                var levels = new Dictionary<string, int>
+                context.Result = new JsonResult(new { message = "Forbidden - Insufficient clearance level" })
                 {
-                    ["low"] = 1,
-                    ["medium"] = 2,
-                    ["high"] = 3,
-                    ["critical"] = 4
+                    StatusCode = StatusCodes.Status403Forbidden
                 };
-
-                if (levels.TryGetValue(userLevel?.ToLower(), out int userValue) &&
-                    levels.TryGetValue(requiredLevel?.ToLower(), out int requiredValue))
-                {
-                    return userValue >= requiredValue;
-                }
-
-                return false;
             }
         }
+
+        private bool HasSufficientClearance(string userLevel, string requiredLevel)
+        {
+            if (string.IsNullOrEmpty(userLevel) || string.IsNullOrEmpty(requiredLevel))
+                return false; 
+
+            var levels = new Dictionary<string, int>
+            {
+                ["low"] = 1,
+                ["medium"] = 2,
+                ["high"] = 3,
+                ["critical"] = 4
+            };
+
+            if (!levels.TryGetValue(userLevel.ToLower(), out int userValue))
+                return false;
+
+            if (!levels.TryGetValue(requiredLevel.ToLower(), out int requiredValue))
+                return false;
+
+            return userValue >= requiredValue;
+        }
+
     }
+}
 

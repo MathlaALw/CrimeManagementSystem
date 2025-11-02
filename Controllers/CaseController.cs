@@ -63,8 +63,9 @@ namespace Crime_Management_System.Controllers
             if (dto.CrimeReportIds != null && dto.CrimeReportIds.Any())
             {
                 newCase.CaseReports = dto.CrimeReportIds
-                    .Select(id => new CaseReport { CaseId = id, Case = newCase })
-                    .ToList();
+                 .Select(reportId => new CaseReport { ReportId = reportId, Case = newCase })
+                 .ToList();
+
             }
 
             var created = await _caseService.CreateCaseAsync(newCase);
@@ -76,8 +77,8 @@ namespace Crime_Management_System.Controllers
         [HttpPut("{id}")]
         [AuthorizeRoles("Admin", "Investigator")]
         [ClearanceLevel("medium")]
-        public async Task<IActionResult> l
-           (int id, [FromBody] Case caseItem)
+        public async Task<IActionResult> UpdateCase(int id, [FromBody] Case caseItem)
+
         {
             if (id != caseItem.Id)
                 return BadRequest("Case ID mismatch");

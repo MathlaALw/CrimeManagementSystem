@@ -30,44 +30,54 @@ namespace Crime_Management_System.Services.Implementations
 
 
 
-        public async Task<List<UserResponseDto>> GetAllUsersAsync()
+        public async Task<IEnumerable<UserResponseDto>> GetAllUsersAsync()
         {
-            return await _db.Users
-                .Select(u => new UserResponseDto
-                {
-                    Id = u.Id,
-                    Username = u.Username,
-                    Role = u.Role.ToString(),
-                    ClearanceLevel = u.ClearanceLevel.ToString(),
-                    IsActive = u.IsActive,
-                    CreatedAt = u.CreatedAt
-                })
-                .ToListAsync();
-        }
-
-        public async Task<UserResponseDto> GetUserByIdAsync(int userId)
-        {
-            var user = await _db.Users
-                .Where(u => u.Id == userId)
-                .Select(u => new UserResponseDto
-                {
-                    Id = u.Id,
-                    Username = u.Username,
-                    Role = u.Role.ToString(),
-                    ClearanceLevel = u.ClearanceLevel.ToString(),
-                    IsActive = u.IsActive,
-                    CreatedAt = u.CreatedAt
-                })
-                .FirstOrDefaultAsync();
-
-            if (user == null)
             {
-                throw new KeyNotFoundException($"User with ID {userId} not found");
+                return await _db.Users
+                    .Select(u => new UserResponseDto
+                    {
+                        Id = u.Id,
+                        Username = u.Username,
+                        Role = u.Role.ToString(),
+                        ClearanceLevel = u.ClearanceLevel.ToString(),
+                        IsActive = u.IsActive,
+                        CreatedAt = u.CreatedAt
+                    })
+                    .ToListAsync();
             }
-
-            return user;
         }
 
+
+        //public async Task<UserResponseDto> GetUserByIdAsync(int userId)
+        //{
+        //    var user = await _db.Users
+        //        .Where(u => u.Id == userId)
+        //        .Select(u => new UserResponseDto
+        //        {
+        //            Id = u.Id,
+        //            Username = u.Username,
+        //            Role = u.Role.ToString(),
+        //            ClearanceLevel = u.ClearanceLevel.ToString(),
+        //            IsActive = u.IsActive,
+        //            CreatedAt = u.CreatedAt
+        //        })
+        //        .FirstOrDefaultAsync();
+
+        //    if (user == null)
+        //    {
+        //        throw new KeyNotFoundException($"User with ID {userId} not found");
+        //    }
+
+        //    return user;
+        //}
+
+
+
+        public async Task<User?> GetUserByIdAsync(int userId)
+        {
+            var user = await _db.Users.FindAsync(userId);
+            return user; 
+        }
 
 
         public async Task<User?> GetUserByUsernameAsync(string username)
@@ -142,96 +152,48 @@ namespace Crime_Management_System.Services.Implementations
             };
         }
 
-        public async Task<UserResponseDto> UpdateUserAsync(int userId, UpdateUserDto updateUserDto, string updatedByAdmin)
+        public async Task<User> UpdateUserAsync(User user)
         {
-            var user = await _db.Users.FindAsync(userId);
-            if (user == null)
-            {
-                throw new KeyNotFoundException($"User with ID {userId} not found");
-            }
+            var existingUser = await _db.Users.FindAsync(user.Id);
+            if (existingUser == null)
+                throw new KeyNotFoundException("User not found");
 
-            // Check if username is being changed and if it already exists
-            if (!string.IsNullOrEmpty(updateUserDto.FullName) &&
-               updateUserDto.FullName != user.FullName)
-            {
-                user.FullName = updateUserDto.FullName;
-            }
+       // no null 
+            if (!string.IsNullOrEmpty(user.Username))
+                existingUser.Username = user.Username;
 
-            
+            if (!string.IsNullOrEmpty(user.Email))
+                existingUser.Email = user.Email;
 
-            // Update properties if provided
-            if (!string.IsNullOrEmpty(updateUserDto.FullName))
-                user.Username = updateUserDto.FullName;
+            if (!string.IsNullOrEmpty(user.FullName))
+                existingUser.FullName = user.FullName;
 
-            if (!string.IsNullOrEmpty(updateUserDto.Password))
-            {
-                user.PasswordHash = HashPassword(updateUserDto.Password);
-            }
+            if (!string.IsNullOrEmpty(user.PasswordHash))
+                existingUser.PasswordHash = user.PasswordHash;
 
-            if (!string.IsNullOrEmpty(updateUserDto.Role.ToString()))
-            {
-                // Validate clearance level for new role
-                var clearanceLevel = !string.IsNullOrEmpty(updateUserDto.ClearanceLevel.ToString())
-                    ? updateUserDto.ClearanceLevel
-                    : user.ClearanceLevel;
+            if (!string.IsNullOrEmpty(user.Salt))
+                existingUser.Salt = user.Salt;
 
-                if (updateUserDto.ClearanceLevel.HasValue)
-                    user.ClearanceLevel = updateUserDto.ClearanceLevel.Value;
+            existingUser.Role = user.Role;
+            existingUser.ClearanceLevel = user.ClearanceLevel;
+            existingUser.IsActive = user.IsActive;
+            existingUser.UpdatedAt = DateTime.UtcNow;
 
-
-                if (updateUserDto.Role.HasValue)
-                    user.Role = updateUserDto.Role.Value;
-
-            }
-
-            if (updateUserDto.ClearanceLevel.HasValue)
-                user.ClearanceLevel = updateUserDto.ClearanceLevel.Value;
-
-
-            //if (updateUserDto.IsActive.HasValue)
-            //    user.IsActive = updateUserDto.IsActive.Value;
-
-            user.UpdatedAt = DateTime.UtcNow;
-
+            _db.Users.Update(existingUser);
             await _db.SaveChangesAsync();
 
-            _logger.LogInformation("User {Username} updated by admin {AdminUsername}",
-                user.Username, updatedByAdmin);
-
-            return new UserResponseDto
-            {
-                Id = user.Id,
-                Username = user.Username,
-                Role = user.Role.ToString(),
-                ClearanceLevel = user.ClearanceLevel.ToString(),
-                IsActive = user.IsActive,
-                CreatedAt = user.CreatedAt
-            };
+            return existingUser;
         }
 
-        public async Task<bool> DeleteUserAsync(int userId, string deletedByAdmin)
+
+        public async Task<bool> DeleteUserAsync(int id)
         {
-            var user = await _db.Users.FindAsync(userId);
+            var user = await _db.Users.FindAsync(id);
             if (user == null)
-            {
-                throw new KeyNotFoundException($"User with ID {userId} not found");
-            }
+                return false;
 
-            // Prevent admin from deleting themselves
-            if (user.Username == deletedByAdmin)
-            {
-                throw new InvalidOperationException("Cannot delete your own account");
-            }
-
-            // Soft delete (set IsActive to false)
-            user.IsActive = false;
-            user.UpdatedAt = DateTime.UtcNow;
-
+            _db.Users.Remove(user);
             await _db.SaveChangesAsync();
-
-            _logger.LogInformation("User {Username} deleted by admin {AdminUsername}",
-                user.Username, deletedByAdmin);
-
             return true;
         }
 
@@ -310,25 +272,7 @@ namespace Crime_Management_System.Services.Implementations
         {
             return AssignRoleAndClearanceAsync(id, role, clearanceLevel);
         }
-        Task<IEnumerable<User>> IUserService.GetAllUsersAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<User> IUserService.GetUserByIdAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<User> UpdateUserAsync(User user)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> DeleteUserAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
+       
         public static string GenerateSalt(int size = 16)
         {
             var saltBytes = new byte[size];
@@ -346,15 +290,7 @@ namespace Crime_Management_System.Services.Implementations
             return await _userRepository.GetByUsernameOrEmailAsync(usernameOrEmail);
         }
 
-        Task<User> IUserService.CreateUserAsync(CreateUserDto createUserDto, string createdByAdmin)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool ValidatePassword(string password, string passwordHash)
-        {
-            throw new NotImplementedException();
-        }
+      
     }
 
 }

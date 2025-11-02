@@ -32,7 +32,8 @@ namespace Crime_Management_System.Servises
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.Username),
             new Claim(ClaimTypes.Role, user.Role.ToString()),
-            new Claim("ClearanceLevel", user.ClearanceLevel.ToString()),
+            // New (sending textual enum value: "low", "medium", "high", "critical")
+            new Claim("ClearanceLevel", Enum.GetName(typeof(ClearanceLevel), user.ClearanceLevel)?.ToLower() ?? "low"),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
