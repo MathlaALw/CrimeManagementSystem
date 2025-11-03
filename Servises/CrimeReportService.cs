@@ -2,6 +2,7 @@
 using Crime_Management_System.Models;
 using Crime_Management_System.Repos;
 
+
 namespace Crime_Management_System.Servises
 {
     public class CrimeReportService : ICrimeReportService
@@ -31,12 +32,13 @@ namespace Crime_Management_System.Servises
 
             var report = new CrimeReport
             {
-                Id = reportDto.Id,
+                //Id = reportDto.Id,
                 Title = reportDto.Title,
                 Description = reportDto.Description,
                 AreaCity = reportDto.AreaCity,
-                Latitude = reportDto.Latitude,
-                Longitude = reportDto.Longitude,
+                //Latitude = reportDto.Latitude,
+                //Longitude = reportDto.Longitude,
+                Status = "Pending",
                 ReportedByUserId = reportDto.ReportedByUserId,
 
             };

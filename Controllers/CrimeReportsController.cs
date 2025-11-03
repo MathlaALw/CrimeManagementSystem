@@ -1,7 +1,7 @@
 ﻿using Crime_Management_System.Data;
 using Crime_Management_System.DTOs;
 using Crime_Management_System.Models;
-using Crime_Management_System.Services;
+
 using Crime_Management_System.Servises;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,8 +14,8 @@ namespace Crime_Management_System.Controllers
     public class CrimeReportsController : ControllerBase
     {
         private readonly CrimeDbContext _context;
-        private readonly object _CrimeReportService;
-        private object? crimeReportService;
+        private readonly ICrimeReportService _CrimeReportService;
+      
 
         public CrimeReportsController(CrimeDbContext context, ICrimeReportService crimeReportService)
         {
@@ -28,9 +28,9 @@ namespace Crime_Management_System.Controllers
         {
             var report = new CrimeReport
             {
+                Title = dto.Title,
                 Description = dto.Description,
                 AreaCity = dto.AreaCity,
-
                 ReportDateTime = DateTime.UtcNow,
                 Status = "Pending",
                 CaseReports = new List<CaseReport>()
