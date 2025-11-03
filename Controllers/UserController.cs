@@ -59,18 +59,43 @@ namespace Crime_Management_System.Controllers
 
         // PUT: api/user/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, [FromBody] User user)
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDto dto)
         {
-            if (id != user.Id)
-                return BadRequest("User ID mismatch");
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
             var existingUser = await _userService.GetUserByIdAsync(id);
             if (existingUser == null)
                 return NotFound();
 
-            await _userService.UpdateUserAsync(user);
+          // updte 
+            if (!string.IsNullOrEmpty(dto.Email))
+                existingUser.Email = dto.Email;
+
+            if (!string.IsNullOrEmpty(dto.FullName))
+                existingUser.FullName = dto.FullName;
+
+            if (!string.IsNullOrEmpty(dto.Password))
+            {
+               
+                var salt = BCrypt.Net.BCrypt.GenerateSalt();
+                var hash = BCrypt.Net.BCrypt.HashPassword(dto.Password, salt);
+                existingUser.PasswordHash = hash;
+                existingUser.Salt = salt;
+            }
+
+            if (dto.Role.HasValue)
+                existingUser.Role = dto.Role.Value;
+
+            if (dto.ClearanceLevel.HasValue)
+                existingUser.ClearanceLevel = dto.ClearanceLevel.Value;
+
+            existingUser.UpdatedAt = DateTime.UtcNow;
+
+            await _userService.UpdateUserAsync(existingUser);
             return NoContent();
         }
+
 
         // DELETE: api/user/5
         [HttpDelete("{id}")]
@@ -94,16 +119,16 @@ namespace Crime_Management_System.Controllers
 
             await _userService.AssignRoleAndClearanceAsync(id, dto.Role, dto.ClearanceLevel);
             return NoContent();
+            }
+
         }
 
-    }
-
-        public class RoleAssignmentDto
-        {
+            public class RoleAssignmentDto
+              {
             public UserRole Role { get; set; }
             public int ClearanceLevel { get; set; }
+            }
         }
-    }
 
 
 
