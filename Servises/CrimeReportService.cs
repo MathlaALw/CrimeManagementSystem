@@ -1,4 +1,5 @@
-﻿using Crime_Management_System.DTOs;
+﻿using Crime_Management_System.Data;
+using Crime_Management_System.DTOs;
 using Crime_Management_System.Models;
 using Crime_Management_System.Repos;
 
@@ -8,10 +9,12 @@ namespace Crime_Management_System.Servises
     public class CrimeReportService : ICrimeReportService
     {
         private readonly ICrimeReportRepository _crimeReportRepository;
+        private readonly CrimeDbContext _db;
 
-        public CrimeReportService(ICrimeReportRepository crimeReportRepository)
+        public CrimeReportService(ICrimeReportRepository crimeReportRepository ,CrimeDbContext crimeDbContext)
         {
             _crimeReportRepository = crimeReportRepository;
+            _db = crimeDbContext;
         }
 
         // CRUD operations for CrimeReport
@@ -29,6 +32,21 @@ namespace Crime_Management_System.Servises
         // Create a new report
         public async Task<CrimeReport> CreateReportAsync(SubmitCrimeReportDto reportDto)
         {
+            User? user = null;
+            if (reportDto.ReportedByUserId != null)
+            {
+                
+                user = await _db.Users.FindAsync(reportDto.ReportedByUserId.Value);
+
+
+                if (user == null)
+                {
+                    throw new ArgumentException("ReportedByUserId does not correspond to a valid user.");
+                }
+
+                if (user.Role is not (UserRole.Citizen or UserRole.Admin or UserRole.Investigator))
+                    throw new UnauthorizedAccessException("Only Citizens, Admins, or Investigators can file crime reports.");
+            }
 
             var report = new CrimeReport
             {
