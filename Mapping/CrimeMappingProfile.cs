@@ -35,8 +35,8 @@ namespace Crime_Management_System.Mapping
                 .ForCtorParam("AreaCity", o => o.MapFrom(s => s.AreaCity))
                 .ForCtorParam("CaseType", o => o.MapFrom(s => s.CaseType))
                 .ForCtorParam("CreatedBy", o => o.MapFrom(s => s.CreatedByUser.FullName))
-                .ForCtorParam("CreatedAt", o => o.MapFrom(s => s.CreatedAt))
-                .ForCtorParam("AuthorizationLevel", o => o.MapFrom(s => s.AuthorizationLevel));
+                .ForCtorParam("CreatedAt", o => o.MapFrom(s => s.CreatedAt));
+               
 
             CreateMap<Case, CaseDetailsDto>()
                  .ForCtorParam("Id", opt => opt.MapFrom(s => s.Id))
@@ -46,7 +46,7 @@ namespace Crime_Management_System.Mapping
                  .ForCtorParam("AreaCity", opt => opt.MapFrom(s => s.AreaCity))
                  .ForCtorParam("CaseType", opt => opt.MapFrom(s => s.CaseType))
                  .ForCtorParam("Status", opt => opt.MapFrom(s => s.Status))
-                 .ForCtorParam("AuthorizationLevel", opt => opt.MapFrom(s => s.AuthorizationLevel))
+                 //.ForCtorParam("AuthorizationLevel", opt => opt.MapFrom(s => s.AuthorizationLevel))
                  .ForCtorParam("CreatedBy", opt => opt.MapFrom(s => s.CreatedByUser.FullName))
                  .ForCtorParam("CreatedAt", opt => opt.MapFrom(s => s.CreatedAt))
                  .ForCtorParam("ReportedBy", opt => opt.MapFrom(s => s.CreatedByUserId)) // <- adjust to your model

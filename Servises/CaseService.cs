@@ -4,6 +4,7 @@ using Crime_Management_System.Repositories.Implementations;
 using Crime_Management_System.Data;
 using Crime_Management_System.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Crime_Management_System.DTOs;
 namespace Crime_Management_System.Services.Implementations
 {
     public class CaseService : ICaseService
@@ -27,13 +28,24 @@ namespace Crime_Management_System.Services.Implementations
             return await _caseRepository.GetByIdAsync(id);
         }
 
-        public async Task<Case> CreateCaseAsync(Case caseEntity)
-        {
-            if (await _caseRepository.CaseNumberExistsAsync(caseEntity.CaseNumber))
-                throw new Exception("Case number already exists");
+        //public async Task<(int id , string message)?> CreateCaseAsync(CreateCaseDto createCase , int AddedByUserid)
+        //{
+        //    var c = new Case
+        //    {
+        //        CaseNumber = createCase.CaseNumber,
+        //        Name = createCase.Name,
+        //        Description = createCase.Description,
+        //        AreaCity = createCase.AreaCity,
+        //        CaseType = createCase.CaseType,
+        //        Status = createCase.Status
+        //    };
 
-            return await _caseRepository.CreateAsync(caseEntity);
-        }
+
+
+
+        //}
+
+
 
 
 
@@ -65,7 +77,7 @@ namespace Crime_Management_System.Services.Implementations
             existingCase.Description = caseEntity.Description;
             existingCase.AreaCity = caseEntity.AreaCity;
             existingCase.CaseType = caseEntity.CaseType;
-            existingCase.AuthorizationLevel = caseEntity.AuthorizationLevel;
+            //existingCase.AuthorizationLevel = caseEntity.AuthorizationLevel;
             existingCase.Status = caseEntity.Status;
 
            

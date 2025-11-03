@@ -39,6 +39,6 @@ namespace Crime_Management_System.Models
         // one-to-many with EvidenceAuditLogs
         public ICollection<EvidenceAuditLog> EvidenceAuditLogs { get; set; } = new List<EvidenceAuditLog>();
         public bool IsActive { get; internal set; }
-        public string Salt { get; internal set; }
+        public string Salt { get; set; } = string.Empty;
     }
 }

@@ -40,38 +40,37 @@ namespace Crime_Management_System.Controllers
         }
 
         // POST: api/cases
-        [HttpPost]
-        [AuthorizeRoles("Admin", "Investigator")]
-        [ClearanceLevel("medium")] 
-        public async Task<IActionResult> CreateCase([FromBody] CreateCaseDto dto)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        //[HttpPost]
+        //[AuthorizeRoles("Admin", "Investigator")]
+        //[ClearanceLevel("medium")] 
+        //public async Task<IActionResult> CreateCase([FromBody] CreateCaseDto dto)
+        //{
+        //    if (!ModelState.IsValid)
+        //        return BadRequest(ModelState);
 
-            var newCase = new Case
-            {
-                CaseNumber = dto.CaseNumber,
-                Name = dto.Name,
-                Description = dto.Description,
-                AreaCity = dto.AreaCity,
-                CaseType = dto.CaseType,
-                AuthorizationLevel = dto.AuthorizationLevel,
-                Status = dto.Status,
-                CreatedByUserId = dto.CreatedByUserId,
-                CaseReports = new List<CaseReport>()
-            };
-            if (dto.CrimeReportIds != null && dto.CrimeReportIds.Any())
-            {
-                newCase.CaseReports = dto.CrimeReportIds
-                 .Select(reportId => new CaseReport { ReportId = reportId, Case = newCase })
-                 .ToList();
+        //    var newCase = new Case
+        //    {
+        //        CaseNumber = dto.CaseNumber,
+        //        Name = dto.Name,
+        //        Description = dto.Description,
+        //        AreaCity = dto.AreaCity,
+        //        CaseType = dto.CaseType,
+        //        Status = dto.Status,
+        //        CreatedByUserId = dto.CreatedByUserId,
+        //        CaseReports = new List<CaseReport>()
+        //    };
+        //    //if (dto.CrimeReportIds != null && dto.CrimeReportIds.Any())
+        //    //{
+        //    //    newCase.CaseReports = dto.CrimeReportIds
+        //    //     .Select(reportId => new CaseReport { ReportId = reportId, Case = newCase })
+        //    //     .ToList();
 
-            }
+        //    //}
 
-            var created = await _caseService.CreateCaseAsync(newCase);
+        //    //var created = await _caseService.CreateCaseAsync(newCase);
 
-            return CreatedAtAction(nameof(GetCase), new { id = created.Id }, created);
-        }
+        //    return CreatedAtAction(nameof(GetCase), new { id = created.Id }, created);
+        //}
 
         // PUT: api/cases/5
         [HttpPut("{id}")]
@@ -106,7 +105,7 @@ namespace Crime_Management_System.Controllers
         }
 
         // GET: api/cases/public/report
-        [HttpGet("public/report")]
+        [HttpGet("public/report")] 
         [AllowAnonymous] 
         public IActionResult ReportCrime()
         {

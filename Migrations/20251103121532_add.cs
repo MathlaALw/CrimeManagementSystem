@@ -5,19 +5,17 @@
 namespace Crime_Management_System.Migrations
 {
     /// <inheritdoc />
-    public partial class AddSaltToUser : Migration
+    public partial class add : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
                 name: "Salt",
-                table: "Users",
+                table: "Cases",
                 type: "nvarchar(max)",
                 nullable: false,
                 defaultValue: "");
-
-           
         }
 
         /// <inheritdoc />
@@ -25,9 +23,7 @@ namespace Crime_Management_System.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "Salt",
-                table: "Users");
-
-          
+                table: "Cases");
         }
     }
 }

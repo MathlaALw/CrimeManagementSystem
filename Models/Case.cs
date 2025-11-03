@@ -17,15 +17,16 @@ namespace Crime_Management_System.Models
         public string? Description { get; set; }
         [MaxLength(80)] 
         public string? AreaCity { get; set; }
-        public string Salt { get; set; }
+       
         [MaxLength(80)] 
         public string? CaseType { get; set; }
-        [Required] 
-        public ClearanceLevel AuthorizationLevel { get; set; }
+        
         [Required] 
         public CaseStatus Status { get; set; } = CaseStatus.Pending;
        
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    
 
         // navigation properties
 

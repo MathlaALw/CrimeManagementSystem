@@ -1,4 +1,5 @@
-﻿using Crime_Management_System.Models;
+﻿using Crime_Management_System.DTOs;
+using Crime_Management_System.Models;
 
 
 namespace Crime_Management_System.Services.Interfaces
@@ -7,7 +8,7 @@ namespace Crime_Management_System.Services.Interfaces
     {
         Task<IEnumerable<Case>> GetAllCasesAsync();
         Task<Case> GetCaseByIdAsync(int id);
-        Task<Case> CreateCaseAsync(Case caseEntity);
+       // Task<(int id, string message)?> CreateCaseAsync(CreateCaseDto createCase, int AddedByUserid);
         Task<Case> UpdateCaseAsync(Case caseEntity);
         Task<bool> DeleteCaseAsync(int id);
         Task<IEnumerable<Case>> GetCasesByUserAsync(int userId);

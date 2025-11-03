@@ -68,7 +68,7 @@ namespace Crime_Management_System.Repositories.Implementations
             existingCase.Description = caseEntity.Description;
             existingCase.AreaCity = caseEntity.AreaCity;
             existingCase.CaseType = caseEntity.CaseType;
-            existingCase.AuthorizationLevel = caseEntity.AuthorizationLevel;
+            //existingCase.AuthorizationLevel = caseEntity.AuthorizationLevel;
             existingCase.Status = caseEntity.Status;
 
             await _context.SaveChangesAsync();

@@ -4,6 +4,7 @@ using Crime_Management_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Crime_Management_System.Migrations
 {
     [DbContext(typeof(CrimeDbContext))]
-    partial class CrimeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251103051358_AddSaltBackToUser")]
+    partial class AddSaltBackToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,6 +36,9 @@ namespace Crime_Management_System.Migrations
                     b.Property<string>("AreaCity")
                         .HasMaxLength(80)
                         .HasColumnType("nvarchar(80)");
+
+                    b.Property<int>("AuthorizationLevel")
+                        .HasColumnType("int");
 
                     b.Property<string>("CaseNumber")
                         .IsRequired()
