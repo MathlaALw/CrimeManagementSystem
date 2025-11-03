@@ -1,5 +1,9 @@
-﻿namespace Crime_Management_System.Models
+﻿using System.Text.Json.Serialization;
+
+namespace Crime_Management_System.Models
 {
+    // to represent clearance levels in swagger
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum ClearanceLevel 
     { 
         Low = 0,

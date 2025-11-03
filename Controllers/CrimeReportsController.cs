@@ -1,10 +1,11 @@
 ﻿using Crime_Management_System.Data;
 using Crime_Management_System.DTOs;
 using Crime_Management_System.Models;
-using Crime_Management_System.Services;
+
 using Crime_Management_System.Servises;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Crime_Management_System.Controllers
 {
@@ -14,8 +15,8 @@ namespace Crime_Management_System.Controllers
     public class CrimeReportsController : ControllerBase
     {
         private readonly CrimeDbContext _context;
-        private readonly object _CrimeReportService;
-        private object? crimeReportService;
+        private readonly ICrimeReportService _CrimeReportService;
+      
 
         public CrimeReportsController(CrimeDbContext context, ICrimeReportService crimeReportService)
         {
@@ -23,23 +24,66 @@ namespace Crime_Management_System.Controllers
             _CrimeReportService = crimeReportService;
         }
 
+       
         [HttpPost]
         public async Task<IActionResult> ReportCrime([FromBody] CrimeReportCreateDto dto)
         {
+
+            if (dto == null)
+                return BadRequest(new { message = "Report data is required." });
+
+            // Get the current user (if any) 
+            //var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            //int? currentUserId = string.IsNullOrEmpty(userId) ? null : int.Parse(userId);
+
+            int? currentUserId = null;
+            string? role = null;
+
+            if (User?.Identity?.IsAuthenticated == true)
+            {
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out var id))
+                    currentUserId = id;
+
+                role = User.FindFirstValue(ClaimTypes.Role); // e.g. "Admin", "Investigator", "Citizen"
+            }
+
+            // validate reportedby role if user exists
+            if (currentUserId != null)
+            {
+
+
+                if (string.IsNullOrEmpty(role) || (role != "Admin" && role != "Investigator" && role != "Citizen"))
+                {
+                    return BadRequest(new { message = "Only Citizens, Admins, or Investigators can file crime reports." });
+                }
+
+
+
+            }
             var report = new CrimeReport
             {
+                Title = dto.Title,
                 Description = dto.Description,
                 AreaCity = dto.AreaCity,
-
                 ReportDateTime = DateTime.UtcNow,
                 Status = "Pending",
+                ReportedByUserId = currentUserId,
                 CaseReports = new List<CaseReport>()
-            };
 
+            };
+          
             _context.CrimeReports.Add(report);
             await _context.SaveChangesAsync();
 
-            return Ok(new { ReportId = report.Id });
+            return Ok(new 
+            {
+
+                message = "Crime report submitted successfully.",
+                ReportId = report.Id,
+                Status = report.Status
+
+            });
         }
 
         [HttpGet("{reportId}")]
