@@ -1,4 +1,5 @@
-﻿using Crime_Management_System.Attributes;
+﻿using System.Security.Claims;
+using Crime_Management_System.Attributes;
 using Crime_Management_System.DTOs;
 using Crime_Management_System.Models;
 using Crime_Management_System.Services.Interfaces;
@@ -18,10 +19,22 @@ namespace Crime_Management_System.Controllers
             _caseService = caseService;
         }
 
+        // Get current user id from JWT token
+        private int CurrentUserId
+        {
+            get
+            {
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userIdClaim))
+                    throw new UnauthorizedAccessException("User is not authenticated.");
+                return int.Parse(userIdClaim);
+            }
+        }
+
         // GET: api/cases
         [HttpGet]
         [AuthorizeRoles("Admin", "Investigator", "Officer")] 
-        public async Task<IActionResult> GetCases()
+        public async Task<IActionResult> GetAllCases()
         {
             var cases = await _caseService.GetAllCasesAsync();
             return Ok(cases);
@@ -39,38 +52,34 @@ namespace Crime_Management_System.Controllers
             return Ok(caseItem);
         }
 
-        // POST: api/cases
-        //[HttpPost]
-        //[AuthorizeRoles("Admin", "Investigator")]
-        //[ClearanceLevel("medium")] 
-        //public async Task<IActionResult> CreateCase([FromBody] CreateCaseDto dto)
-        //{
-        //    if (!ModelState.IsValid)
-        //        return BadRequest(ModelState);
+        //POST: api/cases
+       [HttpPost]
+       [AuthorizeRoles("Admin", "Investigator")]
+       [ClearanceLevel("medium")]
+        public async Task<IActionResult> CreateCase([FromBody] CreateCaseDto dto)
+        {
+            if (dto == null)
+                return BadRequest("Case data is required.");
 
-        //    var newCase = new Case
-        //    {
-        //        CaseNumber = dto.CaseNumber,
-        //        Name = dto.Name,
-        //        Description = dto.Description,
-        //        AreaCity = dto.AreaCity,
-        //        CaseType = dto.CaseType,
-        //        Status = dto.Status,
-        //        CreatedByUserId = dto.CreatedByUserId,
-        //        CaseReports = new List<CaseReport>()
-        //    };
-        //    //if (dto.CrimeReportIds != null && dto.CrimeReportIds.Any())
-        //    //{
-        //    //    newCase.CaseReports = dto.CrimeReportIds
-        //    //     .Select(reportId => new CaseReport { ReportId = reportId, Case = newCase })
-        //    //     .ToList();
 
-        //    //}
+            // check if the data is valid
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-        //    //var created = await _caseService.CreateCaseAsync(newCase);
+            var result = await _caseService.CreateCaseAsync(dto, CurrentUserId);
 
-        //    return CreatedAtAction(nameof(GetCase), new { id = created.Id }, created);
-        //}
+
+            // If creation failed and the result is null 
+            if (result is null)
+                return BadRequest(new
+                {
+                    message = "Invalid data: case number may already exist or crime report IDs are incorrect."
+                });
+            // Successful creation
+
+            var (id, message) = result.Value;
+            return CreatedAtAction(nameof(GetCase), new { id = id }, new { id = id, message = message });
+        }
 
         // PUT: api/cases/5
         [HttpPut("{id}")]
@@ -104,11 +113,13 @@ namespace Crime_Management_System.Controllers
             return NoContent();
         }
 
+        // get all crime report 
         // GET: api/cases/public/report
         [HttpGet("public/report")] 
         [AllowAnonymous] 
         public IActionResult ReportCrime()
         {
+           
            
             return Ok("Crime report endpoint (public).");
         }

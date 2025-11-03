@@ -23,12 +23,13 @@ namespace Crime_Management_System.DTOs
         [Required]
         public ClearanceLevel AuthorizationLevel { get; set; }
 
-        [Required]
-        public CaseStatus Status { get; set; }
+        //[Required]
+        //public CaseStatus Status { get; set; }
 
-        [Required]
-        public int CreatedByUserId { get; set; }
-        //public List<int> CrimeReportIds { get; set; }
+        //[Required]
+        //public int CreatedByUserId { get; set; }
+
+        public List<int> CrimeReportIds { get; set; }
 
     }
 
