@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Crime_Management_System.Attributes;
 using Crime_Management_System.Data;
 using Crime_Management_System.Services.Implementations;
+using Microsoft.EntityFrameworkCore;
 
 namespace Crime_Management_System.Controllers
 {
@@ -52,6 +53,16 @@ namespace Crime_Management_System.Controllers
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+
+            var existingUser = await _db.Users.FirstOrDefaultAsync(u => u.Username == request.Username || u.Email == request.Email);
+            if(existingUser != null)
+            {
+                if (existingUser.Username == request.Username)
+                    return BadRequest(new { message = "UserName is avalible ,Please use another Name" });
+
+                if (existingUser.Email == request.Email)
+                    return BadRequest(new { message = "Email is avalible ,Please use another Name" });
+            }
 
             // Map string to enum safely
             if (!Enum.TryParse<UserRole>(request.Role, true, out var role))
