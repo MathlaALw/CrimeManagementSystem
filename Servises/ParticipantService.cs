@@ -50,5 +50,48 @@ namespace Crime_Management_System.Servises
             await _db.SaveChangesAsync();
             return true;
         }
+
+        
+        //get  all participants of a case
+        public async Task<List<ParticipantInCaseDto>> GetByCaseAsync(int caseId)
+        {
+            var query = _db.CaseParticipants
+                .Include(cp => cp.Participant)
+                .Where(cp => cp.CaseId == caseId);
+
+            return await query
+                .Select(cp => new ParticipantInCaseDto
+                {
+                    ParticipantId = cp.ParticipantId,
+                    FullName = cp.Participant.FullName,
+                    Phone = cp.Participant.Phone,
+                    Notes = cp.Participant.Notes,
+                    Role = cp.Role,
+                    AddedAt = cp.AddedAt,
+                    AddedByUserId = cp.AddedByUserId
+                })
+                .ToListAsync();
+        }
+
+        // get participants of a case by role
+        public async Task<List<ParticipantInCaseDto>> GetByRoleAsync(int caseId, ParticipantRole role)
+        {
+            var query = _db.CaseParticipants
+                .Include(cp => cp.Participant)
+                .Where(cp => cp.CaseId == caseId && cp.Role == role);
+
+            return await query
+                .Select(cp => new ParticipantInCaseDto
+                {
+                    ParticipantId = cp.ParticipantId,
+                    FullName = cp.Participant.FullName,
+                    Phone = cp.Participant.Phone,
+                    Notes = cp.Participant.Notes,
+                    Role = cp.Role,
+                    AddedAt = cp.AddedAt,
+                    AddedByUserId = cp.AddedByUserId
+                })
+                .ToListAsync();
+        }
     }
 }

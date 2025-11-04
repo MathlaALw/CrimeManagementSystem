@@ -200,5 +200,13 @@ namespace Crime_Management_System.Servises
 
             return false;
         }
+
+        // get all evidence for a case
+        public async Task<List<Evidence>> GetByCaseAsync(int caseId)
+        {
+            return await _db.Evidences
+                .Where(e => e.CaseId == caseId && !e.IsSoftDeleted)
+                .ToListAsync();
+        }
     }
 }

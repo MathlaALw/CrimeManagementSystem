@@ -154,6 +154,32 @@ namespace Crime_Management_System.Controllers
         }
 
 
+        // get all evidence of a case
+      
+        [HttpGet("by-case/{caseId:int}")]
+        public async Task<IActionResult> GetByCase(int caseId)
+        {
+            var evidences = await _service.GetByCaseAsync(caseId);
+
+            if (evidences == null || !evidences.Any())
+                return NotFound(new { message = "No evidence found for this case." });
+
+            var result = evidences.Select(e => new
+            {
+                e.Id,
+                e.CaseId,
+                e.Type,
+                e.TextContent,
+                e.FileUrl,
+                e.MimeType,
+                e.SizeBytes,
+                e.Remarks,
+                e.CreatedAt,
+                e.AddedByUserId
+            });
+
+            return Ok(result);
+        }
 
 
     }

@@ -64,6 +64,15 @@ namespace Crime_Management_System.Servises
 
         }
 
+        //  get all assignees for a case
+        public async Task<List<CaseAssignee>> GetByCaseIdAsync(int caseId)
+        {
+            return await _db.CaseAssignees
+                .Include(a => a.User)
+                .Where(a => a.CaseId == caseId)
+                .ToListAsync();
+        }
+
 
     }
 }

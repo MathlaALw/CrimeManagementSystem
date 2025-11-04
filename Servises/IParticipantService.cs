@@ -7,5 +7,11 @@ namespace Crime_Management_System.Servises
     {
         Task<bool> AddToCaseAsync(int caseId, AddParticipantToCaseDto dto, int? addedByUserId);
         Task<Participant> CreateAsync(AddParticipantDto dto);
+
+        Task<List<ParticipantInCaseDto>> GetByCaseAsync(int caseId);
+
+        Task<List<ParticipantInCaseDto>> GetByRoleAsync(int caseId, ParticipantRole role);
+
+
     }
 }

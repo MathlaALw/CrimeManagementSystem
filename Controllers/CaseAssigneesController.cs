@@ -36,5 +36,30 @@ namespace Crime_Management_System.Controllers
      
         
         }
+
+        // get all assignees of a case
+        
+        [HttpGet("case/{caseId:int}")]
+        public async Task<IActionResult> GetAssigneesByCase(int caseId)
+        {
+            var assignees = await _service.GetByCaseIdAsync(caseId);
+
+            if (assignees == null || !assignees.Any())
+                return NotFound(new { message = "No assignees found for this case." });
+
+            // Simple projection
+            var result = assignees.Select(a => new
+            {
+                a.Id,
+                a.CaseId,
+                a.UserId,
+                UserFullName = a.User?.FullName,
+                a.AssignedRole,
+                a.ProgressStatus,
+                a.AssignedAt
+            });
+
+            return Ok(result);
+        }
     }
 }
