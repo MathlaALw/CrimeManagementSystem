@@ -40,6 +40,7 @@ namespace Crime_Management_System
             builder.Services.AddScoped<IEvidenceRepository, EvidenceRepository>();
             builder.Services.AddScoped<IParticipantRepo, ParticipantRepo>();
             builder.Services.AddScoped<ICrimeReportRepository, CrimeReportRepository>();
+            builder.Services.AddScoped<ICaseAssigneeRepository, CaseAssigneeRepository>();
 
             // ---------- SERVICES ----------
             builder.Services.AddScoped<IUserService, UserService>();
@@ -50,6 +51,7 @@ namespace Crime_Management_System
             builder.Services.AddScoped<IPasswordService, PasswordService>();
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<ICrimeReportService, CrimeReportService>();
+            builder.Services.AddScoped<ICaseAssigneeService, CaseAssigneeService>();
             // builder.Services.AddScoped<JwtService>(); // scoped, safe now with middleware fix
 
             // ---------- JWT CONFIG ----------

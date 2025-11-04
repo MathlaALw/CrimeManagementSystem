@@ -10,7 +10,17 @@ namespace Crime_Management_System.DTOs
         public string? Description { get; set; }
         public string? AreaCity { get; set; }
         public string? CaseType { get; set; }
-        public int CreatedByUserId { get; set; }
+
+        [Required]
+        public ClearanceLevel AuthorizationLevel { get; set; }
+
+        //[Required]
+        //public CaseStatus Status { get; set; }
+
+        //[Required]
+        //public int CreatedByUserId { get; set; }
+
+        public List<int> CrimeReportIds { get; set; }
 
     }
 

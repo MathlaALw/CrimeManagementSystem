@@ -27,6 +27,8 @@ namespace Crime_Management_System.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     
+        [Required]
+        public ClearanceLevel AuthorizationLevel { get; set; } = ClearanceLevel.Low;
 
         // navigation properties
 
