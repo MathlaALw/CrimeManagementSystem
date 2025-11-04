@@ -47,6 +47,9 @@ namespace Crime_Management_System.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] CreateUserDto request)
         {
+            if (request == null)
+                return BadRequest(new { message = "Request body is required." });
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
