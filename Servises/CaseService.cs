@@ -1,58 +1,60 @@
 ﻿using Crime_Management_System.Models;
-using Crime_Management_System.Repos.Implementations;
 using Crime_Management_System.Repositories.Implementations;
 using Crime_Management_System.Data;
 using Crime_Management_System.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Crime_Management_System.DTOs;
-using Microsoft.AspNetCore.Http.HttpResults;
+
 namespace Crime_Management_System.Services.Implementations
 {
     public class CaseService : ICaseService
     {
         private readonly ICaseRepository _caseRepository;
         private readonly CrimeDbContext _dbContext;
-        public CaseService(ICaseRepository caseRepository, CrimeDbContext dbContext) // Corrected parameter name
+
+        public CaseService(ICaseRepository caseRepository, CrimeDbContext dbContext)
         {
             _caseRepository = caseRepository;
-            _dbContext = dbContext; // Corrected to use the parameter name
+            _dbContext = dbContext;
         }
+
+        // Get all cases (with details)
         public async Task<IEnumerable<Case>> GetAllCasesAsync()
         {
-            return await _caseRepository.GetAllAsync();
+            return await _caseRepository.GetCasesWithDetailsAsync();
         }
+
+        // Get single case (with details)
         public async Task<Case> GetCaseByIdAsync(int id)
         {
-            return await _caseRepository.GetByIdAsync(id);
+            var caseEntity = await _caseRepository.GetCaseWithDetailsByIdAsync(id);
+            if (caseEntity == null)
+                throw new Exception("Case not found");
+
+            return caseEntity;
         }
-        //public async Task<(int id , string message)?> CreateCaseAsync(CreateCaseDto createCase , int AddedByUserid)
-        //{
-        //    var c = new Case
-        //    {
-        //        CaseNumber = createCase.CaseNumber,
-        //        Name = createCase.Name,
-        //        Description = createCase.Description,
-        //        AreaCity = createCase.AreaCity,
-        //        CaseType = createCase.CaseType,
-        //        Status = createCase.Status
-        //    };
-        //}
+
         // Create Case
         public async Task<(int id, string message)?> CreateCaseAsync(CreateCaseDto createCaseDto, int addedByUserId)
         {
-            // check for duplicate case number
+            // Check duplicate case number
             if (await _dbContext.Cases.AnyAsync(c => c.CaseNumber == createCaseDto.CaseNumber))
             {
                 return (0, "Case with the same case number already exists");
             }
+
+            // Get creator (for clearance level + CreatedByUserId)
             var creator = await _dbContext.Users.FindAsync(addedByUserId);
             if (creator == null) return null;
-            // Make sure case level is not HIGHER than creator’s clearance
+
+            // Ensure case's authorization level is not higher than creator clearance
             var finalLevel = createCaseDto.AuthorizationLevel;
             if (finalLevel > creator.ClearanceLevel)
             {
                 finalLevel = creator.ClearanceLevel;
             }
+
+            // Build case entity
             var newCase = new Case
             {
                 CaseNumber = createCaseDto.CaseNumber,
@@ -65,54 +67,84 @@ namespace Crime_Management_System.Services.Implementations
                 CreatedByUserId = addedByUserId,
                 CreatedAt = DateTime.UtcNow
             };
-            // attach crime reports with caseReport Join table
+
+            // Attach crime reports (CaseReports join table)
             if (createCaseDto.CrimeReportIds != null && createCaseDto.CrimeReportIds.Any())
             {
-                // Only keep existing reports to avoid FK errors
                 var existingReports = await _dbContext.CrimeReports
                     .Where(r => createCaseDto.CrimeReportIds.Contains(r.Id))
                     .ToListAsync();
+
                 if (!existingReports.Any())
                 {
-                    // No valid report IDs – treat as invalid request
                     return (0, "No valid crime reports found for the provided IDs");
                 }
-                newCase.CaseReports = existingReports.Select(r => new CaseReport
-                {
-                    ReportId = r.Id,
-                    Case = newCase,
-                    LinkedAt = DateTime.UtcNow
-                }).ToList();
+
+                newCase.CaseReports = existingReports
+                    .Select(r => new CaseReport
+                    {
+                        ReportId = r.Id,
+                        Case = newCase,
+                        LinkedAt = DateTime.UtcNow
+                    })
+                    .ToList();
             }
-            // save to db
-            await _caseRepository.CreateAsync(newCase);
+
+            // 6) Save via DbContext
+            await _dbContext.Cases.AddAsync(newCase);
+            await _dbContext.SaveChangesAsync();
+
             return (newCase.Id, "Case created successfully");
         }
+
+        // Delete a case
         public async Task<bool> DeleteCaseAsync(int id)
         {
-            return await _caseRepository.DeleteAsync(id);
+            var existing = await _dbContext.Cases.FindAsync(id);
+            if (existing == null)
+                return false;
+
+            _dbContext.Cases.Remove(existing);
+            await _dbContext.SaveChangesAsync();
+            return true;
         }
+
+        // All cases created by a specific user
         public async Task<IEnumerable<Case>> GetCasesByUserAsync(int userId)
         {
-            return await _caseRepository.GetCasesByUserAsync(userId);
+            return await _dbContext.Cases
+                .Where(c => c.CreatedByUserId == userId)
+                .ToListAsync();
         }
+
+        // All cases assigned to a specific officer
         public async Task<IEnumerable<Case>> GetAssignedCasesAsync(int officerId)
         {
-            return await _caseRepository.GetAssignedCasesAsync(officerId);
+            return await _dbContext.CaseAssignees
+                .Include(a => a.Case)
+                .Where(a => a.UserId == officerId)
+                .Select(a => a.Case!)
+                .ToListAsync();
         }
+
+        // Update case
         public async Task<Case> UpdateCaseAsync(Case caseEntity)
         {
-            var existingCase = await _caseRepository.GetByIdAsync(caseEntity.Id);
+            var existingCase = await _dbContext.Cases.FindAsync(caseEntity.Id);
             if (existingCase == null)
                 throw new Exception("Case not found");
+
             existingCase.CaseNumber = caseEntity.CaseNumber;
             existingCase.Name = caseEntity.Name;
             existingCase.Description = caseEntity.Description;
             existingCase.AreaCity = caseEntity.AreaCity;
             existingCase.CaseType = caseEntity.CaseType;
-            //existingCase.AuthorizationLevel = caseEntity.AuthorizationLevel;
+           
+            // existingCase.AuthorizationLevel = caseEntity.AuthorizationLevel;
             existingCase.Status = caseEntity.Status;
-            return await _caseRepository.UpdateAsync(existingCase);
+
+            await _dbContext.SaveChangesAsync();
+            return existingCase;
         }
     }
 }
