@@ -14,77 +14,26 @@ namespace Crime_Management_System.Repositories.Implementations
         {
         }
 
-        public async Task<Case?> GetByCaseNumberAsync(string caseNumber)
+        public async Task<IEnumerable<Case>> GetCasesWithDetailsAsync()
         {
-            return await _table
-                .Include(c => c.CreatedByUser)
-                .FirstOrDefaultAsync(c => c.CaseNumber == caseNumber);
-        }
-
-        public async Task<IEnumerable<Case>> GetCasesByUserAsync(int userId)
-        {
-            return await _table
-                .Include(c => c.CreatedByUser)
-                .Where(c => c.CreatedByUserId == userId)
-                .ToListAsync();
-        }
-
-        public async Task<IEnumerable<Case>> GetAssignedCasesAsync(int officerId)
-        {
-            return await _table
-                .Include(c => c.CaseAssignees)
-                .ThenInclude(ca => ca.User)
-                .Where(c => c.CaseAssignees.Any(a => a.UserId == officerId))
-                .ToListAsync();
-        }
-
-        public async Task<bool> CaseNumberExistsAsync(string caseNumber)
-        {
-            return await _table.AnyAsync(c => c.CaseNumber == caseNumber);
-        }
-
-        public async Task<Case> CreateAsync(Case caseEntity)
-        {
-            await _table.AddAsync(caseEntity);
-            await _context.SaveChangesAsync();
-            return caseEntity;
-        }
-
-        public async Task<Case> UpdateAsync(Case caseEntity)
-        {
-            var existingCase = await _table
-                .Include(c => c.CaseAssignees)
+            return await _context.Cases
                 .Include(c => c.CaseParticipants)
+                .Include(c => c.CaseAssignees)
                 .Include(c => c.Evidences)
                 .Include(c => c.CaseReports)
-                .FirstOrDefaultAsync(c => c.Id == caseEntity.Id);
-
-            if (existingCase == null)
-                throw new Exception("Case not found");
-
-           
-            existingCase.CaseNumber = caseEntity.CaseNumber;
-            existingCase.Name = caseEntity.Name;
-            existingCase.Description = caseEntity.Description;
-            existingCase.AreaCity = caseEntity.AreaCity;
-            existingCase.CaseType = caseEntity.CaseType;
-            //existingCase.AuthorizationLevel = caseEntity.AuthorizationLevel;
-            existingCase.Status = caseEntity.Status;
-
-            await _context.SaveChangesAsync();
-            return existingCase;
+                .Include(c => c.CreatedByUser)
+                .ToListAsync();
         }
 
-
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<Case?> GetCaseWithDetailsByIdAsync(int id)
         {
-            var caseEntity = await _table.FindAsync(id);
-            if (caseEntity == null)
-                return false;
-
-            _table.Remove(caseEntity);
-            await _context.SaveChangesAsync();
-            return true;
+            return await _context.Cases
+                .Include(c => c.CaseParticipants)
+                .Include(c => c.CaseAssignees)
+                .Include(c => c.Evidences)
+                .Include(c => c.CaseReports)
+                .Include(c => c.CreatedByUser)
+                .FirstOrDefaultAsync(c => c.Id == id);
         }
     }
 }
