@@ -48,11 +48,11 @@ namespace Crime_Management_System.Services.Implementations
             if (creator == null) return null;
 
             // Ensure case's authorization level is not higher than creator clearance
-            var finalLevel = createCaseDto.AuthorizationLevel;
-            if (finalLevel > creator.ClearanceLevel)
-            {
-                finalLevel = creator.ClearanceLevel;
-            }
+            //var finalLevel = createCaseDto.AuthorizationLevel;
+            //if (finalLevel > creator.ClearanceLevel)
+            //{
+            //    finalLevel = creator.ClearanceLevel;
+            //}
 
             // Build case entity
             var newCase = new Case
@@ -63,7 +63,7 @@ namespace Crime_Management_System.Services.Implementations
                 AreaCity = createCaseDto.AreaCity,
                 CaseType = createCaseDto.CaseType,
                 Status = CaseStatus.Pending,
-                AuthorizationLevel = finalLevel,
+              //  AuthorizationLevel = finalLevel,
                 CreatedByUserId = addedByUserId,
                 CreatedAt = DateTime.UtcNow
             };

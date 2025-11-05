@@ -8,6 +8,7 @@ using Crime_Management_System.Attributes;
 using Crime_Management_System.Data;
 using Crime_Management_System.Services.Implementations;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace Crime_Management_System.Controllers
 {
@@ -53,6 +54,12 @@ namespace Crime_Management_System.Controllers
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+
+            //email format
+            var emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            if (!Regex.IsMatch(request.Email, emailPattern))
+                return BadRequest(new { message = "Please User correct Email format" });
+
 
             var existingUser = await _db.Users.FirstOrDefaultAsync(u => u.Username == request.Username || u.Email == request.Email);
             if(existingUser != null)
