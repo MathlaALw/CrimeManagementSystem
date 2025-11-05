@@ -100,17 +100,27 @@ namespace Crime_Management_System.Controllers
         }
 
         // DELETE: api/cases/5
-        [HttpDelete("{id}")]
+        [HttpDelete("deleteCase")]
         [AuthorizeRoles("Admin")]
-        [ClearanceLevel("high")] 
         public async Task<IActionResult> DeleteCase(int id)
         {
-            var caseItem = await _caseService.GetCaseByIdAsync(id);
-            if (caseItem == null)
-                return NotFound();
+            try
+            {
+                var caseItem = await _caseService.GetCaseByIdAsync(id);
+                if (caseItem == null)
+                    return NotFound(new { message = "Case not found." });
 
-            await _caseService.DeleteCaseAsync(id);
-            return NoContent();
+                await _caseService.DeleteCaseAsync(id);
+                return Ok(new { message = "Case deleted successfully." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { error = "An unexpected error occurred while deleting the case." });
+            }
         }
 
         // get all crime report 

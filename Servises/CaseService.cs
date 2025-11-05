@@ -98,15 +98,19 @@ namespace Crime_Management_System.Services.Implementations
         }
 
         // Delete a case
-        public async Task<bool> DeleteCaseAsync(int id)
+        public async Task DeleteCaseAsync(int id)
         {
-            var existing = await _dbContext.Cases.FindAsync(id);
-            if (existing == null)
-                return false;
+            var caseItem = await _dbContext.Cases
+                .Include(c => c.CaseReports)
+                .Include(c => c.CaseParticipants)
+                .FirstOrDefaultAsync(c => c.Id == id);
 
-            _dbContext.Cases.Remove(existing);
+            if (caseItem == null)
+                throw new InvalidOperationException("Case not found.");
+
+
+            _dbContext.Cases.Remove(caseItem);
             await _dbContext.SaveChangesAsync();
-            return true;
         }
 
         // All cases created by a specific user

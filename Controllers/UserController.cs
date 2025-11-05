@@ -4,9 +4,11 @@ using Crime_Management_System.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Crime_Management_System.DTOs;
 using Crime_Management_System.Attributes;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Crime_Management_System.Controllers
 {
+    [Authorize]
     [AuthorizeRoles("Admin")]
     [Route("api/[controller]")]
     [ApiController]
