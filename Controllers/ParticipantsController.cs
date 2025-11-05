@@ -8,6 +8,7 @@ using System.Security.Claims;
 namespace Crime_Management_System.Controllers
 {
     [ApiController]
+   // [Authorize]
     [Route("api/[controller]")]
     [Authorize(Policy = "InvestigatorOrAbove")]
     public class ParticipantsController : ControllerBase

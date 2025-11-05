@@ -4,9 +4,11 @@ using Crime_Management_System.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Crime_Management_System.DTOs;
 using Crime_Management_System.Attributes;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Crime_Management_System.Controllers
 {
+    [Authorize]
     [AuthorizeRoles("Admin")]
     [Route("api/[controller]")]
     [ApiController]
@@ -96,18 +98,24 @@ namespace Crime_Management_System.Controllers
             return NoContent();
         }
 
-
         // DELETE: api/user/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
+          
+            if (id <= 0)
+                return BadRequest(new { message = "Invalid user ID." });
+
             var user = await _userService.GetUserByIdAsync(id);
             if (user == null)
-                return NotFound();
+                return NotFound(new { message = $"User with ID {id} was not found." });
 
             await _userService.DeleteUserAsync(id);
-            return NoContent();
+
+            // Return a success message
+            return Ok(new { message = $"User '{user.Username}' has been deleted successfully." });
         }
+
 
         // PUT: api/user/5/role
         [HttpPut("{id}/role")]

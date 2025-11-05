@@ -104,5 +104,11 @@ namespace Crime_Management_System.Servises
             var report = await _crimeReportRepository.GetByReportIdAsync(reportId);
             return report?.Status ?? "Not Found";
         }
+
+        public async Task<IEnumerable<CrimeReport>> GetAllReportsAsync()
+        {
+            return await _crimeReportRepository.GetAllAsync();
+        }
+
     }
 }

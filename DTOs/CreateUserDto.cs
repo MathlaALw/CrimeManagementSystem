@@ -9,6 +9,7 @@ namespace Crime_Management_System.DTOs
         public string Username { get; set; } = string.Empty;
 
         [Required, MaxLength(120)]
+        [EmailAddress(ErrorMessage = "Invalid email format.")]
         public string Email { get; set; } = string.Empty;
 
         [Required, MaxLength(160)]

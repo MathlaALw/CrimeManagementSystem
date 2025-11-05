@@ -35,5 +35,7 @@ namespace Crime_Management_System.Repositories.Implementations
                 .Include(c => c.CreatedByUser)
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
+
+
     }
 }
