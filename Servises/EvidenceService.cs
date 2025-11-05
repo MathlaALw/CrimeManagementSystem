@@ -125,7 +125,12 @@ namespace Crime_Management_System.Servises
                 e.TextContent = dto.TextContent;
             }
 
-            e.Remarks = dto.Remarks;
+            // Update remarks if provided
+            if (dto.Remarks != null)
+            {
+                e.Remarks = dto.Remarks;
+            }
+
             e.UpdatedAt = DateTime.UtcNow;
 
             _db.EvidenceAuditLogs.Add(new EvidenceAuditLog

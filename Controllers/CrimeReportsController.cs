@@ -88,11 +88,14 @@ namespace Crime_Management_System.Controllers
 
         [HttpGet("{reportId}")]
         public IActionResult GetReportStatus(int reportId)
+
         {
+
+
             var report = _context.CrimeReports
                 .FirstOrDefault(r => r.Id == reportId);
 
-            if (report == null) return NotFound();
+            if (report == null) return NotFound(new { message = "Report not found." });
 
             return Ok(new { report.Status, report.CaseReports });
         }
