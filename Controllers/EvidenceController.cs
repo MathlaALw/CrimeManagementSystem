@@ -100,28 +100,31 @@ namespace Crime_Management_System.Controllers
         // [FromBody] <-- read dto from JSON body
         // [FromRoute] <-- read id from the URL path
 
-        [HttpPut("UpdateEvidenceByEvidence/{id:int}")]
-        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateEvidenceDto dto)
+        [HttpPut("UpdateEvidenceByEvidenceById")]
+        public async Task<IActionResult> Update([FromQuery] int id, [FromBody] UpdateEvidenceDto dto)
         {
+            if (id == null)
+                return BadRequest(new { message = "Id parameter is required" });
+
             var ok = await _service.UpdateAsync(id, dto, CurrentUserId);
-            return ok ? Ok(new { message = "Evidence updated" }) : BadRequest("Invalid request");
+            return ok ? Ok(new { message = "Evidence updated" }) : BadRequest("Evidence Not Found");
         }
 
 
         // Soft delete evidence by id
-        [HttpDelete("{id:int}/soft")]
+        [HttpDelete("soft-Delete")]
         [Authorize(Policy = "InvestigatorOrAbove")]
         public async Task<IActionResult> SoftDelete(int id)
         {
             var ok = await _service.SoftDeleteAsync(id, CurrentUserId);
             return ok ?
                 Ok(new { message = "Evidence soft-deleted" }) :
-                NotFound();
+                NotFound("Evidence Not Found");
         }
 
         // Hard delete evidence with confirmation
         //  -> requiring high clearance 
-        [HttpPost("{id}/hard-delete/confirm")]
+        [HttpPost("hardDelete")]
         [Authorize(Policy = "InvestigatorOrAbove")]
         [Authorize(Policy = "ClearanceHighOrAbove")]
         public async Task<IActionResult> ConfirmHardDelete(int id, [FromBody] HardDeleteConfirmationDto confirmation)
@@ -142,7 +145,7 @@ namespace Crime_Management_System.Controllers
                 NotFound(new { message = "Evidence not found or unauthorized" });
         }
 
-        [HttpDelete("Delete/{id}")]
+        [HttpDelete("Delete")]
         [Authorize(Policy = "InvestigatorOrAbove")]
         public async Task<IActionResult> FinalizeHardDelete(int id)
         {
@@ -156,7 +159,7 @@ namespace Crime_Management_System.Controllers
 
         // get all evidence of a case
       
-        [HttpGet("by-case/{caseId:int}")]
+        [HttpGet("AllEvidenceByCase")]
         public async Task<IActionResult> GetByCase(int caseId)
         {
             var evidences = await _service.GetByCaseAsync(caseId);

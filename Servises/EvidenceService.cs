@@ -119,9 +119,9 @@ namespace Crime_Management_System.Servises
             var e = await _db.Evidences.FirstOrDefaultAsync(x => x.Id == id);
             if (e == null) return false;
 
-            if (e.Type == EvidenceType.Text)
+            if (e.Type == EvidenceType.Text && dto.TextContent != null)
             {
-                if (dto.TextContent == null) return false;
+                //if (dto.TextContent == null) return false;
                 e.TextContent = dto.TextContent;
             }
 
