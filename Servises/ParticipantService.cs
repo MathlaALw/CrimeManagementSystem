@@ -93,5 +93,45 @@ namespace Crime_Management_System.Servises
                 })
                 .ToListAsync();
         }
+
+
+        // Update participant details
+        public async Task<bool> UpdateParticipantInCaseAsync(int participantId, UpdateParticipantDto dto)
+        {
+            // Find the existing participant by ID
+            var participant = await _db.Participants.FindAsync(participantId);
+
+            if (participant == null)
+                return false; // Participant not found
+
+
+            participant.FullName = dto.FullName;
+            participant.Phone = dto.Phone;
+            participant.Notes = dto.Notes;
+
+
+
+            // Save changes
+            await _db.SaveChangesAsync();
+
+            return true;
+        }
+
+        // Delete participant 
+        public async Task<bool> DeleteParticipantAsync(int participantId)
+        {
+            var participant = await _db.Participants.FindAsync(participantId);
+            if (participant == null)
+                return false;
+            // Remove associated CaseParticipants entries
+            var caseParticipants = _db.CaseParticipants.Where(cp => cp.ParticipantId == participantId);
+            _db.CaseParticipants.RemoveRange(caseParticipants);
+            // Remove the participant
+            _db.Participants.Remove(participant);
+            await _db.SaveChangesAsync();
+            return true;
+
+
+        }
     }
 }

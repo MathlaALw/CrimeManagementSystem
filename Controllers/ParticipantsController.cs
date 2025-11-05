@@ -37,7 +37,8 @@ namespace Crime_Management_System.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-
+            if (dto == null)
+                return BadRequest("Participant data is required.");
             var participant = await _service.CreateAsync(dto);
 
             // Return basic info (you can expand if you want)
@@ -51,7 +52,7 @@ namespace Crime_Management_System.Controllers
         }
 
         // Add participant to a case
-        [HttpPost("{caseId:int}/add-to-case")]
+        [HttpPost("add-to-case")]
         public async Task<IActionResult> AddToCase(int caseId, [FromBody] AddParticipantToCaseDto dto)
         {
             if (!ModelState.IsValid)
@@ -68,7 +69,7 @@ namespace Crime_Management_System.Controllers
         }
 
         // Get all participants by caseId
-        [HttpGet("{caseId:int}/participants")]
+        [HttpGet("allParticipants")]
         public async Task<IActionResult> GetAllParticipants(int caseId)
         {
             var list = await _service.GetByCaseAsync(caseId);
@@ -79,7 +80,7 @@ namespace Crime_Management_System.Controllers
             return Ok(list);
         }
         // get allParticipants by role = Suspect by caseId
-        [HttpGet("{caseId:int}/suspects")]
+        [HttpGet("allSuspects")]
         public async Task<IActionResult> GetSuspects(int caseId)
         {
             var list = await _service.GetByRoleAsync(caseId, ParticipantRole.Suspect);
@@ -90,7 +91,7 @@ namespace Crime_Management_System.Controllers
             return Ok(list);
         }
         // get allParticipants by role = Victim by caseId
-        [HttpGet("{caseId:int}/victims")]
+        [HttpGet("allVictims")]
         public async Task<IActionResult> GetVictims(int caseId)
         {
             var list = await _service.GetByRoleAsync(caseId, ParticipantRole.Victim);
@@ -102,7 +103,7 @@ namespace Crime_Management_System.Controllers
         }
 
         // get allParticipants by role = Witness by caseId
-        [HttpGet("{caseId:int}/witnesses")]
+        [HttpGet("allWitnesses")]
         public async Task<IActionResult> GetWitnesses(int caseId)
         {
             var list = await _service.GetByRoleAsync(caseId, ParticipantRole.Witness);
@@ -111,6 +112,31 @@ namespace Crime_Management_System.Controllers
                 return NotFound(new { message = "No witnesses found for this case." });
 
             return Ok(list);
+        }
+
+
+        [HttpPut("UpdateParticipant")]
+        [Authorize(Policy = "InvestigatorOrAbove")]
+        public async Task<IActionResult> UpdateParticipant(int participantId, [FromBody] UpdateParticipantDto dto)
+        {
+            var success = await _service.UpdateParticipantInCaseAsync(participantId, dto);
+
+            if (!success)
+                return NotFound(new { message = "Participant not found" });
+
+            return Ok(new { message = "Participant updated successfully" });
+        }
+
+        [HttpDelete("DeleteParticipantById")]
+        [Authorize(Policy = "InvestigatorOrAbove")]
+        public async Task<IActionResult> DeleteParticipant(int participantId)
+        {
+            var success = await _service.DeleteParticipantAsync(participantId);
+
+            if (!success)
+                return NotFound(new { message = "Participant not found" });
+
+            return Ok(new { message = "Participant deleted successfully" });
         }
 
     }

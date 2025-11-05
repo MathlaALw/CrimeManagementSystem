@@ -9,7 +9,8 @@ namespace Crime_Management_System.Models
 
         [Required, MaxLength(160)] 
         public string FullName { get; set; } = null!;
-        [MaxLength(40)] 
+
+        [Required, MaxLength(40)] 
         public string? Phone { get; set; }
         [MaxLength(500)] 
         public string? Notes { get; set; }

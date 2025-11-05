@@ -12,6 +12,8 @@ namespace Crime_Management_System.Servises
 
         Task<List<ParticipantInCaseDto>> GetByRoleAsync(int caseId, ParticipantRole role);
 
+        Task<bool> UpdateParticipantInCaseAsync(int participantId,UpdateParticipantDto dto);
 
+        Task<bool> DeleteParticipantAsync(int participantId);
     }
 }
