@@ -7,5 +7,7 @@ namespace Crime_Management_System.Repositories.Implementations
     {
         Task<IEnumerable<Case>> GetCasesWithDetailsAsync();
         Task<Case?> GetCaseWithDetailsByIdAsync(int id);
+         Task<IEnumerable<Case>> GetAllAsync();
+
     }
 }

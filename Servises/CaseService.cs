@@ -25,14 +25,33 @@ namespace Crime_Management_System.Services.Implementations
         }
 
         // Get single case (with details)
+
         public async Task<Case> GetCaseByIdAsync(int id)
         {
-            var caseEntity = await _caseRepository.GetCaseWithDetailsByIdAsync(id);
-            if (caseEntity == null)
-                throw new Exception("Case not found");
+            if (id <= 0)
+                throw new ArgumentException("Invalid ID. The ID must be greater than zero.");
 
-            return caseEntity;
+            try
+            {
+                var caseEntity = await _caseRepository.GetCaseWithDetailsByIdAsync(id);
+
+                if (caseEntity == null)
+                    return null;
+
+                return caseEntity;
+            }
+            catch (DbUpdateException ex)
+            {
+
+                throw new InvalidOperationException("Database error occurred while retrieving the case.", ex);
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception("An unexpected error occurred in GetCaseByIdAsync.", ex);
+            }
         }
+
 
         // Create Case
         public async Task<(int id, string message)?> CreateCaseAsync(CreateCaseDto createCaseDto, int addedByUserId)
@@ -132,23 +151,38 @@ namespace Crime_Management_System.Services.Implementations
         }
 
         // Update case
-        public async Task<Case> UpdateCaseAsync(Case caseEntity)
+        public async Task<Case>UpdateCaseAsync(int id, UpdateCaseDto caseEntity)
         {
-            var existingCase = await _dbContext.Cases.FindAsync(caseEntity.Id);
-            if (existingCase == null)
-                throw new Exception("Case not found");
+            if (caseEntity == null)
+                throw new ArgumentException("Case data cannot be null.");
 
-            existingCase.CaseNumber = caseEntity.CaseNumber;
+            var existingCase = await _dbContext.Cases.FindAsync(id);
+            if (existingCase == null)
+                throw new InvalidOperationException("Case not found.");
+
+            if (string.IsNullOrWhiteSpace(caseEntity.Name))
+                throw new ArgumentException("Case name is required.");
+
+            if (string.IsNullOrWhiteSpace(caseEntity.Description))
+                throw new ArgumentException("Case description is required.");
+
+            if (string.IsNullOrWhiteSpace(caseEntity.AreaCity))
+                throw new ArgumentException("Case area/city is required.");
+
+            if (string.IsNullOrWhiteSpace(caseEntity.CaseType))
+                throw new ArgumentException("Case type is required.");
+
             existingCase.Name = caseEntity.Name;
             existingCase.Description = caseEntity.Description;
             existingCase.AreaCity = caseEntity.AreaCity;
             existingCase.CaseType = caseEntity.CaseType;
-           
-            // existingCase.AuthorizationLevel = caseEntity.AuthorizationLevel;
             existingCase.Status = caseEntity.Status;
+
 
             await _dbContext.SaveChangesAsync();
             return existingCase;
         }
+
     }
 }
+

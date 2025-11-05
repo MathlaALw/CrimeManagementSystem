@@ -5,6 +5,7 @@ namespace Crime_Management_System.Servises
 {
     public interface ICrimeReportService
     {
+        Task<IEnumerable<CrimeReport>> GetAllReportsAsync();
         Task<CrimeReport> CreateReportAsync(SubmitCrimeReportDto reportDto);
         Task<IEnumerable<CrimeReport>> GetPendingReportsAsync();
         Task<CrimeReport> GetReportByIdAsync(int id);

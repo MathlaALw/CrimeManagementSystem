@@ -3,21 +3,25 @@ using Crime_Management_System.Attributes;
 using Crime_Management_System.DTOs;
 using Crime_Management_System.Models;
 using Crime_Management_System.Services.Interfaces;
+using Crime_Management_System.Servises;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Crime_Management_System.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [AuthorizeRoles("Admin", "Investigator")] 
+    [AuthorizeRoles("Admin", "Investigator")]
     public class CasesController : ControllerBase
     {
         private readonly ICaseService _caseService;
+        private readonly ICrimeReportService _crimeReportService;
 
-        public CasesController(ICaseService caseService)
+        public CasesController(ICaseService caseService, ICrimeReportService crimeReportService)
         {
             _caseService = caseService;
+            _crimeReportService = crimeReportService;
         }
+
 
         // Get current user id from JWT token
         private int CurrentUserId
@@ -33,7 +37,7 @@ namespace Crime_Management_System.Controllers
 
         // GET: api/cases
         [HttpGet]
-        [AuthorizeRoles("Admin", "Investigator", "Officer")] 
+        [AuthorizeRoles("Admin", "Investigator", "Officer")]
         public async Task<IActionResult> GetAllCases()
         {
             var cases = await _caseService.GetAllCasesAsync();
@@ -41,21 +45,47 @@ namespace Crime_Management_System.Controllers
         }
 
         // GET: api/cases/5
-        [HttpGet("{id}")]
+        [HttpGet("GetByID")]
         [AuthorizeRoles("Admin", "Investigator", "Officer")]
         public async Task<IActionResult> GetCase(int id)
         {
-            var caseItem = await _caseService.GetCaseByIdAsync(id);
-            if (caseItem == null)
-                return NotFound();
+            try
+            {
 
-            return Ok(caseItem);
+                if (id <= 0)
+                {
+                    return BadRequest(new { error = "Invalid case ID. ID must be greater than zero." });
+                }
+
+                var caseItem = await _caseService.GetCaseByIdAsync(id);
+
+
+                if (caseItem == null)
+                {
+                    return NotFound(new { error = $"Case with ID {id} was not found." });
+                }
+                return Ok(caseItem);
+            }
+            catch (ArgumentException ex)
+            {
+
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+
+                return Conflict(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An unexpected error occurred while retrieving the case.", details = ex.Message });
+            }
         }
 
         //POST: api/cases
-       [HttpPost]
-       [AuthorizeRoles("Admin", "Investigator")]
-       [ClearanceLevel("medium")]
+        [HttpPost]
+        [AuthorizeRoles("Admin", "Investigator")]
+        [ClearanceLevel("medium")]
         public async Task<IActionResult> CreateCase([FromBody] CreateCaseDto dto)
         {
             if (dto == null)
@@ -82,22 +112,42 @@ namespace Crime_Management_System.Controllers
         }
 
         // PUT: api/cases/5
-        [HttpPut("{id}")]
+        [HttpPut("UpdateByID")]
         [AuthorizeRoles("Admin", "Investigator")]
         [ClearanceLevel("medium")]
-        public async Task<IActionResult> UpdateCase(int id, [FromBody] Case caseItem)
-
+        public async Task<IActionResult> UpdateCase(int id, [FromBody] UpdateCaseDto caseItem)
         {
-            if (id != caseItem.Id)
-                return BadRequest("Case ID mismatch");
+            if (caseItem == null)
+                return BadRequest(new { error = "Case data is required." });
 
-            var existingCase = await _caseService.GetCaseByIdAsync(id);
-            if (existingCase == null)
-                return NotFound();
+            try
+            {
+                var existingCase = await _caseService.GetCaseByIdAsync(id);
+                if (existingCase == null)
+                    return NotFound(new { error = $"Case with ID {id} not found." });
 
-            await _caseService.UpdateCaseAsync(caseItem);
-            return NoContent();
+                var updatedCase = await _caseService.UpdateCaseAsync(id, caseItem);
+
+                return Ok(new
+                {
+                    message = "Case updated successfully.",
+                    updatedCase
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Unexpected error: {ex.Message}" });
+            }
         }
+
 
         // DELETE: api/cases/5
         [HttpDelete("deleteCase")]
@@ -125,13 +175,18 @@ namespace Crime_Management_System.Controllers
 
         // get all crime report 
         // GET: api/cases/public/report
-        [HttpGet("public/report")] 
-        [AllowAnonymous] 
-        public IActionResult ReportCrime()
+        [HttpGet("public/report")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAllCrimeReports()
         {
-           
-           
-            return Ok("Crime report endpoint (public).");
+            var reports = await _crimeReportService.GetAllReportsAsync();
+
+            if (reports == null || !reports.Any())
+                return NotFound(new { message = "No crime reports found." });
+
+            return Ok(reports);
         }
+
     }
 }
+
