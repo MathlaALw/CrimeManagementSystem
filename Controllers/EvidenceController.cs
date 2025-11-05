@@ -41,7 +41,7 @@ namespace Crime_Management_System.Controllers
             }
         }
         // Create text evidence
-        [HttpPost("Create text evidence")]
+        [HttpPost("CreateTextEvidence")]
 
         public async Task<IActionResult> CreateText(CreateTextEvidenceDto dto)
         {
@@ -53,7 +53,7 @@ namespace Crime_Management_System.Controllers
         }
 
         // Create image evidence
-        [HttpPost("Create image evidence")]
+        [HttpPost("CreateImageEvidence")]
         public async Task<IActionResult> CreateImage([FromForm] CreateImageEvidenceDto dto)
         {
             if (dto is null) return BadRequest("Payload is required.");
@@ -64,11 +64,11 @@ namespace Crime_Management_System.Controllers
         }
 
         // Get evidence by id
-        [HttpGet("Get Evidence by id ")]
+        [HttpGet("GetEvidenceById")]
         public async Task<IActionResult> Get(int id)
         {
             var e = await _service.GetAsync(id);
-            if (e == null || e.IsSoftDeleted) return NotFound();
+            if (e == null || e.IsSoftDeleted) return BadRequest("Evidence not found");
             return Ok(new
             {
                 e.Id,
@@ -84,11 +84,11 @@ namespace Crime_Management_System.Controllers
         }
 
         // Get image evidence file by Id
-        [HttpGet("Get image evidence file by Id")]
+        [HttpGet("GetImageEvidenceFileById")]
         public async Task<IActionResult> Image(int id)
         {
             var res = await _service.GetImageAsync(id, _env.ContentRootPath);
-            if (res is null)
+            if (res == null)
                 return BadRequest("Evidence is not an image or missing");
             // MemoryStream to match the correct File(...) overload
             var stream = new MemoryStream(res.Value.bytes);
@@ -100,28 +100,31 @@ namespace Crime_Management_System.Controllers
         // [FromBody] <-- read dto from JSON body
         // [FromRoute] <-- read id from the URL path
 
-        [HttpPut("Update Evidence by Evidence {id:int}")]
-        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateEvidenceDto dto)
+        [HttpPut("UpdateEvidenceByEvidenceById")]
+        public async Task<IActionResult> Update([FromQuery] int id, [FromBody] UpdateEvidenceDto dto)
         {
+            if (id == null)
+                return BadRequest(new { message = "Id parameter is required" });
+
             var ok = await _service.UpdateAsync(id, dto, CurrentUserId);
-            return ok ? Ok(new { message = "Evidence updated" }) : BadRequest("Invalid request");
+            return ok ? Ok(new { message = "Evidence updated" }) : BadRequest("Evidence Not Found");
         }
 
 
         // Soft delete evidence by id
-        [HttpDelete("{id:int}/soft")]
+        [HttpDelete("soft-Delete")]
         [Authorize(Policy = "InvestigatorOrAbove")]
         public async Task<IActionResult> SoftDelete(int id)
         {
             var ok = await _service.SoftDeleteAsync(id, CurrentUserId);
             return ok ?
                 Ok(new { message = "Evidence soft-deleted" }) :
-                NotFound();
+                NotFound("Evidence Not Found");
         }
 
         // Hard delete evidence with confirmation
         //  -> requiring high clearance 
-        [HttpPost("{id}/hard-delete/confirm")]
+        [HttpPost("hardDelete")]
         [Authorize(Policy = "InvestigatorOrAbove")]
         [Authorize(Policy = "ClearanceHighOrAbove")]
         public async Task<IActionResult> ConfirmHardDelete(int id, [FromBody] HardDeleteConfirmationDto confirmation)
@@ -142,7 +145,7 @@ namespace Crime_Management_System.Controllers
                 NotFound(new { message = "Evidence not found or unauthorized" });
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("Delete")]
         [Authorize(Policy = "InvestigatorOrAbove")]
         public async Task<IActionResult> FinalizeHardDelete(int id)
         {
@@ -156,7 +159,7 @@ namespace Crime_Management_System.Controllers
 
         // get all evidence of a case
       
-        [HttpGet("by-case/{caseId:int}")]
+        [HttpGet("AllEvidenceByCase")]
         public async Task<IActionResult> GetByCase(int caseId)
         {
             var evidences = await _service.GetByCaseAsync(caseId);
