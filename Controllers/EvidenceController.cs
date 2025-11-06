@@ -147,6 +147,7 @@ namespace Crime_Management_System.Controllers
 
         [HttpDelete("Delete")]
         [Authorize(Policy = "InvestigatorOrAbove")]
+        [Authorize(Policy = "ClearanceHighOrAbove")]
         public async Task<IActionResult> FinalizeHardDelete(int id)
         {
             // This endpoint should only be called after confirmation
