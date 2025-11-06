@@ -46,65 +46,65 @@ namespace Crime_Management_System.Controllers
             return Ok(new { accessToken = token, expiresAtUtc = expires, tokenType = "Bearer" });
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] CreateUserDto request)
-        {
-            if (request == null)
-                return BadRequest(new { message = "Request body is required." });
+        //[HttpPost("register")]
+        //public async Task<IActionResult> Register([FromBody] CreateUserDto request)
+        //{
+        //    if (request == null)
+        //        return BadRequest(new { message = "Request body is required." });
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        //    if (!ModelState.IsValid)
+        //        return BadRequest(ModelState);
 
-            //email format
-            var emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-            if (!Regex.IsMatch(request.Email, emailPattern))
-                return BadRequest(new { message = "Please User correct Email format" });
+        //    //email format
+        //    var emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+        //    if (!Regex.IsMatch(request.Email, emailPattern))
+        //        return BadRequest(new { message = "Please User correct Email format" });
 
 
-            var existingUser = await _db.Users.FirstOrDefaultAsync(u => u.Username == request.Username || u.Email == request.Email);
-            if(existingUser != null)
-            {
-                if (existingUser.Username == request.Username)
-                    return BadRequest(new { message = "UserName is avalible ,Please use another Name" });
+        //    var existingUser = await _db.Users.FirstOrDefaultAsync(u => u.Username == request.Username || u.Email == request.Email);
+        //    if(existingUser != null)
+        //    {
+        //        if (existingUser.Username == request.Username)
+        //            return BadRequest(new { message = "UserName is avalible ,Please use another Name" });
 
-                if (existingUser.Email == request.Email)
-                    return BadRequest(new { message = "Email is avalible ,Please use another Name" });
-            }
+        //        if (existingUser.Email == request.Email)
+        //            return BadRequest(new { message = "Email is avalible ,Please use another Name" });
+        //    }
 
-            // Map string to enum safely
-            if (!Enum.TryParse<UserRole>(request.Role, true, out var role))
-            {
-                return BadRequest(new { message = "Invalid role value." });
-            }
+        //    // Map string to enum safely
+        //    if (!Enum.TryParse<UserRole>(request.Role, true, out var role))
+        //    {
+        //        return BadRequest(new { message = "Invalid role value." });
+        //    }
 
-            // Generate salt
-            var salt = UserService.GenerateSalt();
+        //    // Generate salt
+        //    var salt = UserService.GenerateSalt();
 
-            // Hash password + salt
-            var passwordHash = Convert.ToBase64String(
-                System.Security.Cryptography.SHA256.HashData(
-                    System.Text.Encoding.UTF8.GetBytes(request.Password + salt)
-                )
-            );
+        //    // Hash password + salt
+        //    var passwordHash = Convert.ToBase64String(
+        //        System.Security.Cryptography.SHA256.HashData(
+        //            System.Text.Encoding.UTF8.GetBytes(request.Password + salt)
+        //        )
+        //    );
 
-            var user = new User
-            {
-                Username = request.Username,
-                Email = request.Email,
-                FullName = request.FullName,
-                PasswordHash = passwordHash,
-                Salt = salt,  // ← MUST assign!
-                Role = role,
-                ClearanceLevel = (ClearanceLevel)request.ClearanceLevel,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            };
+        //    var user = new User
+        //    {
+        //        Username = request.Username,
+        //        Email = request.Email,
+        //        FullName = request.FullName,
+        //        PasswordHash = passwordHash,
+        //        Salt = salt,  // ← MUST assign!
+        //        Role = role,
+        //        ClearanceLevel = (ClearanceLevel)request.ClearanceLevel,
+        //        IsActive = true,
+        //        CreatedAt = DateTime.UtcNow
+        //    };
 
-            await _db.Users.AddAsync(user);
-            await _db.SaveChangesAsync();
+        //    await _db.Users.AddAsync(user);
+        //    await _db.SaveChangesAsync();
 
-            return Ok(new { message = "User registered successfully", userId = user.Id });
-        }
+        //    return Ok(new { message = "User registered successfully", userId = user.Id });
+        //}
 
 
     }

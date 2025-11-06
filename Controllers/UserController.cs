@@ -52,7 +52,7 @@ namespace Crime_Management_System.Controllers
 
         
         [HttpPost]
-        [Attributes.AllowAnonymous]
+        [AuthorizeRoles("Admin")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDto  request)
         {
             if (request == null)

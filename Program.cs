@@ -16,6 +16,7 @@ using Crime_Management_System.Helper;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
 using System.Text.Json;
+using Crime_Management_System.Services;
 
 
 
@@ -53,6 +54,8 @@ namespace Crime_Management_System
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<ICrimeReportService, CrimeReportService>();
             builder.Services.AddScoped<ICaseAssigneeService, CaseAssigneeService>();
+            builder.Services.AddScoped<CaseCommentService>();
+
             // builder.Services.AddScoped<JwtService>(); // scoped, safe now with middleware fix
 
             // ---------- JWT CONFIG ----------
