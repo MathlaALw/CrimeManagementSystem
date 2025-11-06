@@ -18,6 +18,8 @@ namespace Crime_Management_System.Data
         public DbSet<CaseAssignee> CaseAssignees { get; set; } = null!;
         public DbSet<Evidence> Evidences { get; set; } = null!;
         public DbSet<EvidenceAuditLog> EvidenceAuditLogs { get; set; } = null!;
+        public DbSet<CaseComment> CaseComments { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder b)
         {
