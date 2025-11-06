@@ -183,6 +183,80 @@ namespace Crime_Management_System.Services.Implementations
             return existingCase;
         }
 
-    }
+        public async Task<CaseDetailsDto?> GetCaseDetailsAsync(int id)
+        {
+            // 1) Load the case itself
+            var caseEntity = await _dbContext.Cases
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == id);
+            if (caseEntity == null)
+                return null;
+            // 2) CreatedBy (username / fullname)
+            var createdByName = await _dbContext.Users
+                .Where(u => u.Id == caseEntity.CreatedByUserId)
+                .Select(u => u.FullName ?? u.Username)
+                .FirstOrDefaultAsync();
+            // 3) ReportedBy (citizen/admin/investigator through linked crime reports)
+            //    Adjust join/table names if yours are slightly different.
+            string? reportedBy = null;
+            var reporterNames = await (
+                from cr in _dbContext.CrimeReports
+                join crp in _dbContext.CaseReports on cr.Id equals crp.ReportId
+                join u in _dbContext.Users on cr.ReportedByUserId equals u.Id into userGroup
+                from u in userGroup.DefaultIfEmpty()
+                where crp.CaseId == id
+                select u != null
+                    ? (u.FullName ?? u.Username)
+                    : "Anonymous"
+            )
+            .Distinct()
+            .ToListAsync();
+            if (reporterNames.Count == 1)
+                reportedBy = reporterNames[0];
+            else if (reporterNames.Count > 1)
+                reportedBy = string.Join(", ", reporterNames);
+            // 4) Counts
+            var numberOfAssignees = await _dbContext.CaseAssignees
+                .CountAsync(a => a.CaseId == id);
+            // 
+            var numberOfEvidences = await _dbContext.Evidences
+                .CountAsync(e => e.CaseId == id && !e.IsSoftDeleted);
+            //  Count suspects
+            var numberOfSuspects = await _dbContext.CaseParticipants
+                .Where(cp => cp.CaseId == id && cp.Role == ParticipantRole.Suspect)
+                .CountAsync();
+            // Count victims
+            var numberOfVictims = await _dbContext.CaseParticipants
+                .Where(cp => cp.CaseId == id && cp.Role == ParticipantRole.Victim)
+                .CountAsync();
+            // Count witnesses
+            var numberOfWitnesses = await _dbContext.CaseParticipants
+                .Where(cp => cp.CaseId == id && cp.Role == ParticipantRole.Witness)
+                .CountAsync();
+            // 5) Map to DTO
+            return new CaseDetailsDto
+            {
+                Id = caseEntity.Id,
+                CaseNumber = caseEntity.CaseNumber,
+                Name = caseEntity.Name,
+                Description = caseEntity.Description,
+                AreaCity = caseEntity.AreaCity,
+                CreatedBy = createdByName,
+                CreatedAt = caseEntity.CreatedAt,
+                CaseType = caseEntity.CaseType,
+                Status = caseEntity.Status,
+                AuthorizationLevel = caseEntity.AuthorizationLevel,
+                ReportedBy = reportedBy,
+                Assignees = numberOfAssignees,
+                Evidences = numberOfEvidences,
+                Suspects = numberOfSuspects,
+                Victims = numberOfVictims,
+                Witnesses = numberOfWitnesses
+            };
+        
+    
+}
+
+}
 }
 

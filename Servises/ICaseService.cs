@@ -13,5 +13,6 @@ namespace Crime_Management_System.Services.Interfaces
         Task DeleteCaseAsync(int id);
         Task<IEnumerable<Case>> GetCasesByUserAsync(int userId);
         Task<IEnumerable<Case>> GetAssignedCasesAsync(int officerId);
+        Task<CaseDetailsDto?> GetCaseDetailsAsync(int id);
     }
 }

@@ -186,6 +186,16 @@ namespace Crime_Management_System.Controllers
 
             return Ok(reports);
         }
+        [HttpGet("details")]
+        [AuthorizeRoles("Admin", "Investigator", "Officer")]
+        public async Task<IActionResult> GetCaseDetails(int id)
+        {
+            var details = await _caseService.GetCaseDetailsAsync(id);
+            if (details == null)
+                return NotFound(new { message = "Case not found." });
+            return Ok(details);
+        }
+
 
     }
 }
