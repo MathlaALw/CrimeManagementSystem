@@ -5,6 +5,11 @@ using Microsoft.AspNetCore.Mvc;
 using Crime_Management_System.DTOs;
 using Crime_Management_System.Attributes;
 using Microsoft.AspNetCore.Authorization;
+using Azure.Core;
+using Crime_Management_System.Services.Implementations;
+using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
+using Crime_Management_System.Data;
 
 namespace Crime_Management_System.Controllers
 {
@@ -15,6 +20,7 @@ namespace Crime_Management_System.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly CrimeDbContext _db;
 
 
         public UserController(IUserService userService)
@@ -33,7 +39,7 @@ namespace Crime_Management_System.Controllers
         }
 
         // GET: api/user/5
-        [HttpGet("{id}")]
+        [HttpGet("GetUserByID")]
         public async Task<IActionResult> GetUser(int id)
         {
             var user = await _userService.GetUserByIdAsync(id);
@@ -43,24 +49,74 @@ namespace Crime_Management_System.Controllers
         }
 
         // POST: api/user
+
+        
         [HttpPost]
-        public async Task<IActionResult> CreateUser([FromBody] CreateUserDto createUserDto)
+        [Attributes.AllowAnonymous]
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserDto  request)
         {
+            if (request == null)
+                return BadRequest(new { message = "Request body is required." });
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // You need the current admin username or some creator identifier
-            var adminUsername = User.Identity?.Name ?? "system";
+            //email format
+            var emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            if (!Regex.IsMatch(request.Email, emailPattern))
+                return BadRequest(new { message = "Please User correct Email format" });
 
-            var result = await _userService.CreateUserAsync(createUserDto, adminUsername);
 
-            return CreatedAtAction(nameof(GetUser), new { id = result.Id }, result);
+            var existingUser = await _db.Users.FirstOrDefaultAsync(u => u.Username == request.Username || u.Email == request.Email);
+            if (existingUser != null)
+            {
+                if (existingUser.Username == request.Username)
+                    return BadRequest(new { message = "UserName is avalible ,Please use another Name" });
+
+                if (existingUser.Email == request.Email)
+                    return BadRequest(new { message = "Email is avalible ,Please use another Name" });
+            }
+
+            // Map string to enum safely
+            if (!Enum.TryParse<UserRole>(request.Role, true, out var role))
+            {
+                return BadRequest(new { message = "Invalid role value." });
+            }
+
+            // Generate salt
+            var salt = UserService.GenerateSalt();
+
+            // Hash password + salt
+            var passwordHash = Convert.ToBase64String(
+                System.Security.Cryptography.SHA256.HashData(
+                    System.Text.Encoding.UTF8.GetBytes(request.Password + salt)
+                )
+            );
+
+            var user = new User
+            {
+                Username = request.Username,
+                Email = request.Email,
+                FullName = request.FullName,
+                PasswordHash = passwordHash,
+                Salt = salt,  // ← MUST assign!
+                Role = role,
+                ClearanceLevel = (ClearanceLevel)request.ClearanceLevel,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _db.Users.AddAsync(user);
+            await _db.SaveChangesAsync();
+
+            return Ok(new { message = "User registered successfully", userId = user.Id });
         }
 
 
 
+
         // PUT: api/user/5
-        [HttpPut("{id}")]
+        [HttpPut("UpdateUserByID")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDto dto)
         {
             if (!ModelState.IsValid)
@@ -99,7 +155,7 @@ namespace Crime_Management_System.Controllers
         }
 
         // DELETE: api/user/5
-        [HttpDelete("{id}")]
+        [HttpDelete("DeleteUser")]
         public async Task<IActionResult> DeleteUser(int id)
         {
           
@@ -118,7 +174,7 @@ namespace Crime_Management_System.Controllers
 
 
         // PUT: api/user/5/role
-        [HttpPut("{id}/role")]
+        [HttpPut("role")]
         public async Task<IActionResult> AssignRoleAndClearance(int id, [FromBody] RoleAssignmentDto dto)
         {
             var user = await _userService.GetUserByIdAsync(id);
@@ -130,7 +186,6 @@ namespace Crime_Management_System.Controllers
             }
 
         }
-
             public class RoleAssignmentDto
               {
             public UserRole Role { get; set; }
