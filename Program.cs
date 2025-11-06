@@ -15,6 +15,7 @@ using System.Text;
 using Crime_Management_System.Helper;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
+using System.Text.Json;
 
 
 
@@ -82,6 +83,24 @@ namespace Crime_Management_System
                         RoleClaimType = ClaimTypes.Role,        // <- important
                         NameClaimType = ClaimTypes.NameIdentifier
                     };
+
+
+                    // handle forbidden responses for specific policies
+                    options.Events = new JwtBearerEvents
+                {
+                    OnForbidden = async context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        context.Response.ContentType = "application/json";
+
+                        var payload = JsonSerializer.Serialize(new
+                        {
+                            message = "You don't have permission"
+                        });
+
+                        await context.Response.WriteAsync(payload);
+                    }
+                };
                 });
 
             builder.Services.AddAuthorization(options =>
@@ -107,6 +126,11 @@ namespace Crime_Management_System
                 }));
 
                 options.AddPolicy("ClearanceCriticalOnly", p => p.RequireClaim("ClearanceLevel", "Critical", "critical"));
+                
+
+
+            
+            
             });
 
             // ---------- SWAGGER ----------
