@@ -141,8 +141,7 @@ POST /api/Email/send?to=example@mail.com
 
 ---
 
-## Contributors
+## 👥 Contributors
 
-Mathla Salim Alwahaibi – @MathlaALw
-
-Rehab AlNairi – @Rehabalnairi
+- **[Mathla Salim Alwahaibi](https://github.com/MathlaALw)**  
+- **[Rehab AlNairi](https://github.com/Rehabalnairi)**
