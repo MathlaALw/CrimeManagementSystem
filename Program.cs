@@ -106,8 +106,24 @@ namespace Crime_Management_System
                         });
 
                         await context.Response.WriteAsync(payload);
-                    }
-                };
+                    },
+                        OnChallenge = async context =>
+                        {
+
+                            context.HandleResponse();
+
+                            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                            context.Response.ContentType = "application/json";
+
+                            var result = JsonSerializer.Serialize(new
+                            {
+                                error = "Unauthorized",
+                                message = "you are not allow to do this"
+                            });
+
+                            await context.Response.WriteAsync(result);
+                        }
+                    };
                 });
 
             builder.Services.AddAuthorization(options =>

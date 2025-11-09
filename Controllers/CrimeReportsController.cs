@@ -88,7 +88,7 @@ namespace Crime_Management_System.Controllers
             });
         }
 
-        [HttpGet("{reportId}")]
+        [HttpGet("GetReportStatus")]
         public IActionResult GetReportStatus(int reportId)
 
         {

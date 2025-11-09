@@ -114,8 +114,7 @@ namespace Crime_Management_System.Controllers
 
         // PUT: api/cases/5
         [HttpPut("UpdateByID")]
-        [AuthorizeRoles("Admin", "Investigator")]
-        [ClearanceLevel("medium")]
+        [AuthorizeRoles("Admin", "Investigator", "Officer")]
         public async Task<IActionResult> UpdateCase(int id, [FromBody] UpdateCaseDto caseItem)
         {
             if (caseItem == null)
