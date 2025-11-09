@@ -160,22 +160,6 @@ namespace Crime_Management_System.Services.Implementations
             if (existingCase == null)
                 throw new InvalidOperationException("Case not found.");
 
-            if (string.IsNullOrWhiteSpace(caseEntity.Name))
-                throw new ArgumentException("Case name is required.");
-
-            if (string.IsNullOrWhiteSpace(caseEntity.Description))
-                throw new ArgumentException("Case description is required.");
-
-            if (string.IsNullOrWhiteSpace(caseEntity.AreaCity))
-                throw new ArgumentException("Case area/city is required.");
-
-            if (string.IsNullOrWhiteSpace(caseEntity.CaseType))
-                throw new ArgumentException("Case type is required.");
-
-            existingCase.Name = caseEntity.Name;
-            existingCase.Description = caseEntity.Description;
-            existingCase.AreaCity = caseEntity.AreaCity;
-            existingCase.CaseType = caseEntity.CaseType;
             existingCase.Status = caseEntity.Status;
 
 
