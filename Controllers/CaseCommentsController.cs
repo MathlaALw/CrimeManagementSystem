@@ -161,13 +161,48 @@ namespace Crime_Management_System.Controllers
         [HttpDelete("DeleteComment")]
         public async Task<IActionResult> DeleteComment(int commentId)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            var result = await _commentService.DeleteCommentAsync(commentId, userId);
+            try
+            {
+        
+                if (commentId <= 0)
+                    return BadRequest("Invalid comment ID.");
 
-            if (!result.Success)
-                return BadRequest(result.Message);
 
-            return Ok(result.Message);
+                var userIdClaim = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim))
+                    return Unauthorized("User ID not found in token. Please log in again.");
+
+                if (!int.TryParse(userIdClaim, out int userId))
+                    return BadRequest("Invalid user ID in token.");
+                if (_commentService == null)
+                    return StatusCode(500, "Comment service is not available.");
+
+                var result = await _commentService.DeleteCommentAsync(commentId, userId);
+
+               
+                if (!result.Success)
+                    return BadRequest(result.Message);
+
+                return Ok(new
+                {
+                    Message = "Comment deleted successfully.",
+                    DeletedBy = userId,
+                    CommentId = commentId
+                });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized("You are not authorized to delete this comment.");
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound("The specified comment was not found.");
+            }
+            catch (Exception ex)
+            {           
+                return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
+            }
         }
+
     }
 }
