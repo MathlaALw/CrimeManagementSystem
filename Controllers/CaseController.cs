@@ -15,11 +15,12 @@ namespace Crime_Management_System.Controllers
     {
         private readonly ICaseService _caseService;
         private readonly ICrimeReportService _crimeReportService;
-
-        public CasesController(ICaseService caseService, ICrimeReportService crimeReportService)
+        private readonly INotificationService _notifications;
+        public CasesController(ICaseService caseService, ICrimeReportService crimeReportService, INotificationService notifications)
         {
             _caseService = caseService;
             _crimeReportService = crimeReportService;
+            _notifications = notifications;
         }
 
 
@@ -127,6 +128,8 @@ namespace Crime_Management_System.Controllers
                     return NotFound(new { error = $"Case with ID {id} not found." });
 
                 var updatedCase = await _caseService.UpdateCaseAsync(id, caseItem);
+
+                await _notifications.SendCaseUpdateNotificationAsync(updatedCase);
 
                 return Ok(new
                 {

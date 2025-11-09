@@ -16,15 +16,16 @@ namespace Crime_Management_System.Controllers
     {
         private readonly CrimeDbContext _context;
         private readonly ICrimeReportService _CrimeReportService;
-      
+        private readonly INotificationService _notifications;
 
-        public CrimeReportsController(CrimeDbContext context, ICrimeReportService crimeReportService)
+        public CrimeReportsController(CrimeDbContext context, ICrimeReportService crimeReportService, INotificationService notifications)
         {
             _context = context;
             _CrimeReportService = crimeReportService;
+            _notifications = notifications;
         }
 
-       
+
         [HttpPost]
         public async Task<IActionResult> ReportCrime([FromBody] CrimeReportCreateDto dto)
         {
@@ -75,6 +76,7 @@ namespace Crime_Management_System.Controllers
           
             _context.CrimeReports.Add(report);
             await _context.SaveChangesAsync();
+            await _notifications.SendNewCrimeReportNotificationAsync(report);
 
             return Ok(new 
             {

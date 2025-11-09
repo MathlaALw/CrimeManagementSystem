@@ -19,6 +19,7 @@ namespace Crime_Management_System.Data
         public DbSet<Evidence> Evidences { get; set; } = null!;
         public DbSet<EvidenceAuditLog> EvidenceAuditLogs { get; set; } = null!;
         public DbSet<CaseComment> CaseComments { get; set; }
+        public DbSet<CitizenSubscription> CitizenSubscriptions { get; set; } = null!;
 
 
         protected override void OnModelCreating(ModelBuilder b)
@@ -66,6 +67,14 @@ namespace Crime_Management_System.Data
             b.Entity<CrimeReport>()
                 .Property(c => c.Longitude)
             .HasPrecision(18, 8);
+
+            // CitizenSubscription
+            b.Entity<CitizenSubscription>(e =>
+            {
+                e.HasIndex(x => x.Email).IsUnique();
+                e.Property(x => x.FullName).HasMaxLength(200);
+                e.Property(x => x.City).HasMaxLength(100);
+            });
 
             base.OnModelCreating(b);
         }

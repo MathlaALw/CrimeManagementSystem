@@ -4,6 +4,7 @@ using Crime_Management_System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Crime_Management_System.Migrations
 {
     [DbContext(typeof(CrimeDbContext))]
-    partial class CrimeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251106121715_update")]
+    partial class update
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -111,37 +114,6 @@ namespace Crime_Management_System.Migrations
                     b.ToTable("CaseAssignees");
                 });
 
-            modelBuilder.Entity("Crime_Management_System.Models.CaseComment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CaseId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CommentText")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CaseId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("CaseComments");
-                });
-
             modelBuilder.Entity("Crime_Management_System.Models.CaseParticipant", b =>
                 {
                     b.Property<int>("Id")
@@ -201,51 +173,6 @@ namespace Crime_Management_System.Migrations
                     b.HasIndex("ReportId");
 
                     b.ToTable("CaseReports");
-                });
-
-            modelBuilder.Entity("Crime_Management_System.Models.CitizenSubscription", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("ReceiveAlerts")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("ReceiveCaseUpdates")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("ReceiveNewCrimes")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("SubscribedAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.ToTable("CitizenSubscriptions");
                 });
 
             modelBuilder.Entity("Crime_Management_System.Models.CrimeReport", b =>
@@ -487,25 +414,6 @@ namespace Crime_Management_System.Migrations
                         .WithMany("CaseAssignees")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Case");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Crime_Management_System.Models.CaseComment", b =>
-                {
-                    b.HasOne("Crime_Management_System.Models.Case", "Case")
-                        .WithMany()
-                        .HasForeignKey("CaseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Crime_Management_System.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Case");

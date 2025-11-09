@@ -43,6 +43,7 @@ namespace Crime_Management_System
             builder.Services.AddScoped<IParticipantRepo, ParticipantRepo>();
             builder.Services.AddScoped<ICrimeReportRepository, CrimeReportRepository>();
             builder.Services.AddScoped<ICaseAssigneeRepository, CaseAssigneeRepository>();
+            builder.Services.AddScoped<ICitizenSubscriptionRepo, CitizenSubscriptionRepo>();
 
             // ---------- SERVICES ----------
             builder.Services.AddScoped<IUserService, UserService>();
@@ -55,6 +56,9 @@ namespace Crime_Management_System
             builder.Services.AddScoped<ICrimeReportService, CrimeReportService>();
             builder.Services.AddScoped<ICaseAssigneeService, CaseAssigneeService>();
             builder.Services.AddScoped<CaseCommentService>();
+            builder.Services.AddScoped<ICitizenSubscriptionService, CitizenSubscriptionService>();
+            builder.Services.AddScoped<INotificationService, NotificationService>();
+
 
             // builder.Services.AddScoped<JwtService>(); // scoped, safe now with middleware fix
 
@@ -114,6 +118,9 @@ namespace Crime_Management_System
                   options.AddPolicy("InvestigatorOrAbove",
                   p => p.RequireRole("Investigator", "Admin"));
 
+                options.AddPolicy("AdminOnly",
+                  p => p.RequireRole("Admin"));
+
 
                 // Clearance (string-based comparisons)
                 options.AddPolicy("ClearanceMediumOrAbove", p => p.RequireAssertion(ctx =>
@@ -160,7 +167,11 @@ namespace Crime_Management_System
             {
                 o.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
             });
+            // ---------- EMAIL SERVICE ----------
 
+            builder.Services.Configure<EmailSettings>(
+            builder.Configuration.GetSection("EmailSettings"));
+            builder.Services.AddScoped<IEmailSender, EmailSender>();
 
             var app = builder.Build();
 
