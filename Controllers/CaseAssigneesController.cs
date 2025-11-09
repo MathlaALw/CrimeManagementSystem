@@ -39,7 +39,7 @@ namespace Crime_Management_System.Controllers
 
         // get all assignees of a case
         
-        [HttpGet("case/{caseId:int}")]
+        [HttpGet("case/GetAssigneesByCase")]
         public async Task<IActionResult> GetAssigneesByCase(int caseId)
         {
             var assignees = await _service.GetByCaseIdAsync(caseId);
