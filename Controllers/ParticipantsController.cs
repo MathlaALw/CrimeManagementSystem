@@ -10,7 +10,7 @@ namespace Crime_Management_System.Controllers
     [ApiController]
    // [Authorize]
     [Route("api/[controller]")]
-    [Authorize(Policy = "InvestigatorOrAbove")]
+    [Authorize(Policy = "OfficerOrHigher")]
     public class ParticipantsController : ControllerBase
     {
         private readonly IParticipantService _service;

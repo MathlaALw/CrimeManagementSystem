@@ -11,7 +11,7 @@ namespace Crime_Management_System.Controllers
 
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Policy = "InvestigatorOrAbove")]
+    [Authorize(Policy = "OfficerOrHigher")]
     public class EvidenceController : ControllerBase
     {
         private readonly IEvidenceService _service;
