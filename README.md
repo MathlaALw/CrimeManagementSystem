@@ -5,141 +5,225 @@ Built as part of the **Rihal Codestacker Challenge 2025 (Backend)** using **ASP.
 
 ---
 
-## 🧩 Overview
 
-This project is a **role-based crime management platform** that helps police departments and officials to:
+## 📘 Overview  
 
-- Register and authenticate users with different roles and clearance levels  
-- Create and manage **crime cases**  
-- Attach **participants** (suspects, witnesses, victims, officers) to cases  
-- Collect and manage **evidence** (text + file uploads)  
-- Receive **crime reports** from residents  
-- Maintain **audit logs** for sensitive operations  
-- Send **email notifications** for crime awareness and alerts  
+The **Crime Management System** is a backend API that enables multiple user roles — **Admins**, **Investigators**, **Officers**, and **Citizens** — to report, manage, and track crime cases in District Core.  
 
-The API follows a **clean layered architecture**:
-
-```
-
-CrimeManagementSystem/
-├── Auth/                 # JWT token creation & validation
-├── Controllers/          # API endpoints (Cases, Evidence, Users, Auth, etc.)
-├── DTOs/                 # Request and Response Data Transfer Objects
-├── Data/                 # DbContext & database configuration
-├── Helper/               # Constants, policies, helpers
-├── Mapping/              # AutoMapper profiles (Entity ↔ DTO)
-├── Middleware/           # Global exception & logging middleware
-├── Migrations/           # EF Core migrations
-├── Models/               # Entity classes (User, Case, Evidence, etc.)
-├── Repos/                # Generic repository + specific repositories
-├── Servises/             # Business logic services
-├── uploads/              # Uploaded evidence files
-├── Program.cs            # Application entry point
-└── appsettings*.json     # Configuration (DB, JWT, Email, etc.)
-
-```
-
-## ⚙️ Tech Stack
-
-| Category       | Technology |
-|----------------|-------------|
-| **Language**   | C# |
-| **Framework**  | ASP.NET Core Web API (.NET 8) |
-| **Database**   | SQL Server |
-| **ORM**        | Entity Framework Core (Code-First + Migrations) |
-| **Auth**       | JWT + Role & Policy-based Authorization |
-| **Email**      | SendGrid |
-| **Other**      | AutoMapper, Custom Middleware, File Uploads |
-
-
-## 🔐 Roles & Security
-
-### Roles
-- **Admin** – manage users, assign roles, full access  
-- **Investigator** – manage assigned cases & evidence  
-- **Officer** – upload evidence, suspects, witnesses, victims  
-- **Citizen** – submit crime reports & subscribe to alerts  
-
-### Clearance Policies
-Some operations require higher clearance, such as:
-- `InvestigatorOrAbove`
-- `ClearanceHighOrAbove`
-
-
-## 🧠 Core Features
-
-### 🔸 Authentication & Authorization
-- JWT-based login  
-- Login via username or email  
-- Password hashing 
-- Role & clearance validation  
-
-**Endpoints**
-POST /api/Auth/login
-POST /api/Auth/register-citizen
-
+It ensures:
+- ✅ **Data integrity**  
+- 🔒 **Security & Audit logging**  
+- 🧩 **Clear role-based permissions**  
+- ✉️ **Email alerts & case commenting**
 
 ---
 
-### 🔸 User Management
-Admins can:
-- Manage users and assign roles  
-- Set or update clearance levels  
+## 🧩 System Architecture  
+
+| Controller | Description |
+|-------------|-------------|
+| **AuthController** | Handles login and JWT authentication. |
+| **UserController** | Admin-only user management (create, update, assign roles & clearance). |
+| **CrimeReportsController** | Citizens report and track crimes (public endpoints). |
+| **CaseController** | Create, update, list, and view detailed crime cases. |
+| **CaseAssigneesController** | Investigators assign officers to cases. |
+| **ParticipantsController** | Manage suspects, victims, witnesses, and link them to cases. |
+| **EvidenceController** | Add, view, update, soft-delete, and hard-delete evidence. |
+| **CaseCommentsController** | Add, retrieve, and delete case comments (with validations & rate limiting). |
+| **CitizenSubscriptionsController** | Manage citizen subscriptions to city crime alerts. |
+| **AlertsController** | Admin sends community email alerts to subscribed citizens. |
 
 ---
 
-### 🔸 Case Management
-- Create, update, view, and delete crime cases  
-- Includes fields such as case number, city, type, status, authorization level, etc.  
-- Link cases to participants, evidence, and reports  
+## 🧭 Usage / System Flow  
 
-**Endpoints**
-GET /api/Cases
-GET /api/Cases/{id}
-POST /api/Cases
-PUT /api/Cases/{id}
-DELETE /api/Cases/{id}
-
+This section explains how each role uses the system, from public crime reporting to case resolution.
 
 ---
 
-### 🔸 Participants
-- Central `Participant` model (Suspect, Victim, Witness, Officer)  
-- Many-to-many relationship via `CaseParticipant`  
-- Add and manage participants per case  
+### 🧑‍🤝‍🧑 **1️⃣ Citizen Flow (Public Access)**  
+
+**Purpose:**  
+Citizens can report crimes, track their progress, and subscribe for safety alerts.
+
+| Action | Endpoint | Authentication |
+|---------|-----------|----------------|
+| Report a crime | `POST /api/CrimeReports` | ❌ Public |
+| Track report status | `GET /api/CrimeReports/GetReportStatus?reportId=...` | ❌ Public |
+| Subscribe to alerts | `POST /api/CitizenSubscriptions/subscribe` | ❌ Public |
+| Unsubscribe | `POST /api/CitizenSubscriptions/unsubscribe?email=...` | ❌ Public |
+
+**Process:**
+1. Citizen submits a crime report.  
+2. The system generates a unique `reportId`.  
+3. Admins/Investigators are notified via email.  
+4. Citizen tracks progress anytime using the report ID.
 
 ---
 
-### 🔸 Crime Reports & Case Reports
-- **CrimeReport:** public reports by citizens  
-- **CaseReport:** internal reports for investigators/officers  
+### 🕵️‍♀️ **2️⃣ Investigator Flow (Authorized Access)**  
+
+**Purpose:**  
+Investigators handle reports, create cases, assign officers, and manage evidence.
+
+| Action | Endpoint | Role |
+|---------|-----------|------|
+| Create case from report | `POST /api/Cases` | Investigator |
+| Assign officer to case | `POST /api/CaseAssignees/assign-officer` | Investigator |
+| Add participants | `POST /api/Participants/add-to-case` | Investigator |
+| Manage evidence | `POST /api/Evidence/CreateTextEvidence`, `DELETE /api/Evidence/soft-Delete` | Investigator |
+| Comment on case | `POST /api/CaseComments/add` | Investigator |
+
+**Process:**
+1. Investigator logs in via `/api/Auth/login`.  
+2. Creates a case linked to crime reports.  
+3. Assigns officers based on clearance level.  
+4. Adds participants and evidence.  
+5. Posts updates and comments on case progress.  
+6. Citizens and officers are notified by email when updates occur.
 
 ---
 
-### 🔸 Evidence Management
-- Text or file-based evidence uploads  
-- Files stored under `/uploads`  
-- Supports **soft** and **hard delete**  
-- **Audit logs** record all actions  
+### 👮 **3️⃣ Officer Flow (Authorized Access)**  
 
-**Hard Delete Example**
-POST /api/Evidence/hardDelete?id={id}
-Body: { "confirmation": "yes" }
+**Purpose:**  
+Officers view assigned cases, upload evidence, and add investigation comments.
 
+| Action | Endpoint | Role |
+|---------|-----------|------|
+| View assigned cases | `GET /api/Cases` | Officer |
+| Upload evidence | `POST /api/Evidence/CreateImageEvidence` | Officer |
+| Add comments | `POST /api/CaseComments/add` | Officer |
 
-### 🔸 Email Notification System
-- Integrated with **SendGrid**  
-- Sends alerts to subscribed citizens  
-- Citizens choose city/type via `UserSubscription`  
-
-**Test Endpoint**
-POST /api/Email/send?to=example@mail.com
-
-
-
-
+**Process:**
+1. Officer logs in.  
+2. Views assigned cases.  
+3. Uploads evidence (text or image).  
+4. Adds comments with timestamps.  
+5. Officers cannot delete participants or evidence.
 
 ---
+
+### 👨‍💼 **4️⃣ Admin Flow (Full Control)**  
+
+**Purpose:**  
+Admins manage all users, roles, and system-wide alerts.
+
+| Action | Endpoint | Role |
+|---------|-----------|------|
+| Manage users | `POST /api/User`, `PUT /api/User/UpdateUserByID` | Admin |
+| Assign roles & clearance | `PUT /api/User/role` | Admin |
+| Delete users | `DELETE /api/User/DeleteUser?id=...` | Admin |
+| Send community alert | `POST /api/Alerts/community-alert` | Admin |
+
+**Process:**
+1. Admin logs in via `/api/Auth/login`.  
+2. Manages user roles and permissions.  
+3. Sends community safety alerts via email.  
+4. Reviews all actions through audit logs.
+
+---
+
+## ⚙️ System Flow Diagram  
+
+```text
+ ┌────────────────────────────┐
+ │        CITIZEN (Public)   │
+ │────────────────────────────│
+ │ • Report a crime           │
+ │ • Track report status      │
+ │ • Subscribe to alerts      │
+ └──────────────┬─────────────┘
+                │
+                ▼
+       ┌────────────────────────┐
+       │    ADMIN / INVESTIGATOR│
+       │────────────────────────│
+       │ • Create & manage cases│
+       │ • Assign officers      │
+       │ • Add participants     │
+       │ • Update case status   │
+       └────────────┬───────────┘
+                    │
+                    ▼
+           ┌─────────────────┐
+           │    OFFICER      │
+           │─────────────────│
+           │ • View assigned │
+           │   cases         │
+           │ • Upload        │
+           │   evidence      │
+           │ • Add comments  │
+           └───────┬─────────┘
+                   │
+                   ▼
+          ┌──────────────────────┐
+          │   EVIDENCE MODULE    │
+          │──────────────────────│
+          │ • Upload / Delete    │
+          │ • Audit logging      │
+          └────────┬─────────────┘
+                   │
+                   ▼
+        ┌──────────────────────────┐
+        │ EMAIL NOTIFICATION SYSTEM│
+        │──────────────────────────│
+        │ • New crime alerts       │
+        │ • Case updates           │
+        │ • Community broadcasts   │
+        └──────────┬───────────────┘
+                   │
+                   ▼
+         ┌────────────────────────┐
+         │  CITIZENS (Subscribers)│
+         │────────────────────────│
+         │ Receive safety alerts  │
+         │ via email notifications│
+         └────────────────────────┘
+
+   ```
+
+
+
+## ✉️ Email Notification System  
+
+The system automatically sends emails to keep both citizens and officials informed about key events.
+
+### **📨 Event Triggers**
+
+| Event | Trigger |
+|--------|----------|
+| **New Crime Report** | Notifies **Admins** and **Investigators** about newly submitted crime reports. |
+| **Case Update** | Notifies **Citizens** and **Assigned Officers** when case details or status change. |
+| **Community Alert** | Allows **Admins** to send city-wide safety alerts to all **subscribed citizens**. |
+
+---
+
+### **🌐 Public Endpoints**
+
+| Action | Endpoint | Description |
+|---------|-----------|-------------|
+| **Subscribe** | `POST /api/CitizenSubscriptions/subscribe` | Citizens can subscribe to receive city-specific safety alerts. |
+| **Unsubscribe** | `POST /api/CitizenSubscriptions/unsubscribe?email=example@email.com` | Citizens can unsubscribe from receiving alerts. |
+
+---
+## 💬 Case Commenting Rules  
+
+The **Case Commenting** feature allows officers and investigators to exchange updates and insights within a case while maintaining clear rules for content and posting frequency.
+
+---
+
+### **📝 Comment Validation Rules**
+
+| Rule | Description |
+|-------|--------------|
+| **Length** | Must be between **5–150 characters**. |
+| **Allowed Characters** | Letters, numbers, and basic punctuation (`. , ! ? ' -`). |
+| **Disallowed** | HTML tags, code snippets, or any special characters. |
+| **Rate Limit** | Maximum **5 comments per user per minute** to prevent spam. |
+
+---
+
 
 ## 👥 Contributors
 
