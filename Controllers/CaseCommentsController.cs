@@ -57,7 +57,16 @@ namespace Crime_Management_System.Controllers
 
             if (!System.Text.RegularExpressions.Regex.IsMatch(dto.CommentText, @"^[a-zA-Z0-9\s.,!?'-]*$"))
                 return BadRequest("Comment contains invalid characters. Please use only letters, numbers, and basic punctuation.");
+            //check if there case 
 
+            var existingCase = await _db.Cases.FirstOrDefaultAsync(c => c.Id == dto.CaseId);
+            if (existingCase == null)
+            {
+                return NotFound(new
+                {
+                    Error = $"Case with ID {dto.CaseId} does not exist. Please verify the Case ID before adding a comment."
+                });
+            }
             // Rate limiting
             var oneMinuteAgo = DateTime.UtcNow.AddMinutes(-1);
             int recentComments = await _db.CaseComments
@@ -67,6 +76,7 @@ namespace Crime_Management_System.Controllers
             if (recentComments >= 5)
                 return BadRequest("Rate limit exceeded. You can only post up to 5 comments per minute.");
 
+            try { 
             var comment = new CaseComment
             {
                 CaseId = dto.CaseId,
@@ -87,12 +97,65 @@ namespace Crime_Management_System.Controllers
                 comment.CreatedAt
             });
         }
+            catch (DbUpdateException ex)
+            {
+           
+                return BadRequest(new
+                {
+                    Error = "Failed to add comment. The specified case may not exist or has been deleted.",
+                    Details = ex.InnerException?.Message ?? ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                //
+                return StatusCode(500, new
+                {
+                    Error = "An unexpected error occurred while adding the comment.",
+                    Details = ex.Message
+                });
+            }
+        }
 
         [HttpGet("GetComments")]
         public async Task<IActionResult> GetComments(int caseId)
         {
-            var comments = await _commentService.GetCommentsByCaseIdAsync(caseId);
-            return Ok(comments);
+            try
+            {
+
+                if (caseId <= 0)
+                    return BadRequest("Invalid Case ID. Case ID must be greater than zero.");
+               var existingCase = await _db.Cases.FirstOrDefaultAsync(c => c.Id == caseId);
+                if (existingCase == null)
+                    return NotFound(new
+                    {
+                        Error = $"Case with ID {caseId} does not exist."
+                    });
+
+                var comments = await _commentService.GetCommentsByCaseIdAsync(caseId);
+                if (comments == null || !comments.Any())
+                {
+                    return Ok(new
+                    {
+                        Message = "No comments found for this case.",
+                        Comments = new List<object>()
+                    });
+                }
+
+                return Ok(new
+                {
+                    Message = "Comments retrieved successfully.",
+                    TotalComments = comments.Count(),
+                    Comments = comments
+                });
+            }
+            catch (Exception ex)
+            {                return StatusCode(500, new
+                {
+                    Error = "An unexpected error occurred while retrieving comments.",
+                    Details = ex.Message
+                });
+            }
         }
 
         [HttpDelete("DeleteComment")]
