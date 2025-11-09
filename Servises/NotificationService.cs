@@ -1,4 +1,6 @@
-﻿using Crime_Management_System.Models;
+﻿using Crime_Management_System.Data;
+using Crime_Management_System.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Crime_Management_System.Servises
 {
@@ -6,22 +8,48 @@ namespace Crime_Management_System.Servises
     {
         private readonly ICitizenSubscriptionService _subscriptions;
         private readonly IEmailSender _emailSender;
-
+        private readonly CrimeDbContext _db;
         public NotificationService(
             ICitizenSubscriptionService subscriptions,
-            IEmailSender emailSender)
+            IEmailSender emailSender , CrimeDbContext crimeDbContext)
         {
             _subscriptions = subscriptions;
             _emailSender = emailSender;
+            _db = crimeDbContext;
         }
-        //Send new crime report notification
+        //Send new crime report notification 
+        //New Crime Report -> notify Admins + Investigators + subscribed citizens 
 
         public async Task SendNewCrimeReportNotificationAsync(CrimeReport report)
         {
-            var subscribers = await _subscriptions
-                .GetSubscribersForNewCrimesAsync(report.AreaCity);
+            // Internal users : Admins + Investigators
+            var internalRecipients = await _db.Users
+                .Where(u => u.IsActive &&
+                            (u.Role == UserRole.Admin ||
+                             u.Role == UserRole.Investigator))
+                .Select(u => u.Email)
+                .ToListAsync();
 
-            if (!subscribers.Any()) return;
+            // citizens subscribed to "new crimes" in this city
+            var city = report.AreaCity ?? string.Empty;
+            var subscribers = await _subscriptions
+                .GetSubscribersForNewCrimesAsync(city);
+
+            // Extract emails
+            var subscriberEmails = subscribers
+                .Select(x => x.Email)
+                .ToList();
+
+            // Combine and deduplicate
+            var allRecipients = internalRecipients
+                .Concat(subscriberEmails)
+                .Distinct()
+                .ToList();
+
+            // No recipients, no email
+            if (!allRecipients.Any())
+                return;
+
             var subject = $"New Crime Reported in {report.AreaCity}";
 
 
@@ -52,17 +80,41 @@ namespace Crime_Management_System.Servises
         }
 
         // Send case update notification
+        // Case Update -> notify Citizens + Assigned Officers
         public async Task SendCaseUpdateNotificationAsync(Case caseEntity)
         {
-            var subscribers = await _subscriptions
-                .GetSubscribersForCaseUpdatesAsync(caseEntity.AreaCity);
+            // Get city from case
+            var city = caseEntity.AreaCity ?? string.Empty;
 
-            if (!subscribers.Any())
+
+            // Citizens subscribed for case updates in this city
+            var subscribers = await _subscriptions
+                .GetSubscribersForCaseUpdatesAsync(city);
+
+            var subscriberEmails = subscribers
+                .Select(x => x.Email)
+                .ToList();
+
+            // Officers assigned to this case
+            var officerEmails = await _db.CaseAssignees
+                .Include(a => a.User)
+                .Where(a => a.CaseId == caseEntity.Id &&
+                            a.User.IsActive &&
+                            a.User.Role == UserRole.Officer)
+                .Select(a => a.User.Email)
+                .ToListAsync();
+
+            var allRecipients = subscriberEmails
+               .Concat(officerEmails)
+               .Distinct()
+               .ToList();
+
+            if (!allRecipients.Any())
                 return;
 
             var subject = $"Case {caseEntity.CaseNumber} Updated in {caseEntity.AreaCity}";
 
-            var statusText = caseEntity.Status.ToString(); // غيّريها لو الـ Status عندك enum/string
+            var statusText = caseEntity.Status.ToString(); 
 
             var htmlBody = $@"
                 <h2>Case Status Update</h2>
