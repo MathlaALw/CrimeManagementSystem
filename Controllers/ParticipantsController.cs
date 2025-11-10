@@ -34,6 +34,7 @@ namespace Crime_Management_System.Controllers
 
         // Create a new participant
         [HttpPost("CreateNewParticipant")]
+
         public async Task<IActionResult> Create([FromBody] AddParticipantDto dto)
         {
             if (!ModelState.IsValid)

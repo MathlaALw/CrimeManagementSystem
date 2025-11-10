@@ -1,4 +1,6 @@
-﻿using Crime_Management_System.Models;
+﻿using System.Security.Cryptography;
+using System.Text;
+using Crime_Management_System.Models;
 using Microsoft.EntityFrameworkCore;
 namespace Crime_Management_System.Data
 {
@@ -6,31 +8,26 @@ namespace Crime_Management_System.Data
     {
         public static void seed(CrimeDbContext db)
         {
-       
-            // Seed default admin user if no users exist
             if (!db.Users.Any())
             {
-                db.Users.Add(new User
-                {
-                    Username = "admin",
-                    Email = "admin@crime.local",
-                    FullName = "Default Admin",
-                    Role = UserRole.Admin,
-                    ClearanceLevel = ClearanceLevel.Critical,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
-                    CreatedAt = DateTime.UtcNow
-                });
+                // Admin 
+                var salt = Guid.NewGuid().ToString();
+                var password = "Admin@123";
+                var passwordHash = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(password + salt))
+                );
 
                 db.Users.Add(new User
                 {
-                    Username = "admin2",
-                    Email = "admin2@crime.local",
+                    Username = "admin",
+                    Email = "admin@gmail.com",
                     FullName = "Default Admin",
                     Role = UserRole.Admin,
                     ClearanceLevel = ClearanceLevel.Critical,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin2@123"),
+                    PasswordHash = passwordHash,
+                    Salt = salt,
                     CreatedAt = DateTime.UtcNow
                 });
+
 
                 db.SaveChanges();
                 Console.WriteLine("Seeded default admin user.");

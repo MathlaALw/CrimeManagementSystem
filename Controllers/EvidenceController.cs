@@ -11,7 +11,7 @@ namespace Crime_Management_System.Controllers
 
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Policy = "OfficerOrHigher")]
+    [Authorize(Policy = "InvestigatorOrAbove")]
     public class EvidenceController : ControllerBase
     {
         private readonly IEvidenceService _service;
@@ -42,6 +42,7 @@ namespace Crime_Management_System.Controllers
         }
         // Create text evidence
         [HttpPost("CreateTextEvidence")]
+        [Authorize(Policy = "OfficerOrHigher")]
 
         public async Task<IActionResult> CreateText(CreateTextEvidenceDto dto)
         {
@@ -54,6 +55,7 @@ namespace Crime_Management_System.Controllers
 
         // Create image evidence
         [HttpPost("CreateImageEvidence")]
+        [Authorize(Policy = "OfficerOrHigher")]
         public async Task<IActionResult> CreateImage([FromForm] CreateImageEvidenceDto dto)
         {
             if (dto is null) return BadRequest("Payload is required.");

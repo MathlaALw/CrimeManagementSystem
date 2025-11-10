@@ -23,9 +23,10 @@ namespace Crime_Management_System.Controllers
         private readonly CrimeDbContext _db;
 
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService ,CrimeDbContext crimeDbContext)
         {
             _userService = userService;
+            _db = crimeDbContext;
         }
 
 
@@ -148,13 +149,10 @@ namespace Crime_Management_System.Controllers
 
             if (!string.IsNullOrEmpty(dto.Password))
             {
-                // Generate salt
-                var salt = UserService.GenerateSalt();
-
-                // Hash password + salt
-                var HashPassword = Convert.ToBase64String(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(dto.Password + salt)));
-
-                existingUser.PasswordHash = HashPassword;
+               
+                var salt = BCrypt.Net.BCrypt.GenerateSalt();
+                var hash = BCrypt.Net.BCrypt.HashPassword(dto.Password, salt);
+                existingUser.PasswordHash = hash;
                 existingUser.Salt = salt;
             }
 
