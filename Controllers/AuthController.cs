@@ -31,6 +31,7 @@ namespace Crime_Management_System.Controllers
         }
 
         [HttpPost("login")]
+        
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
             var user = await _userService.GetByUsernameOrEmailAsync(dto.UsernameOrEmail);
