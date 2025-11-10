@@ -34,6 +34,7 @@ namespace Crime_Management_System.Servises
             var city = report.AreaCity ?? string.Empty;
             var subscribers = await _subscriptions
                 .GetSubscribersForNewCrimesAsync(city);
+          
 
             // Extract emails
             var subscriberEmails = subscribers
@@ -48,7 +49,10 @@ namespace Crime_Management_System.Servises
 
             // No recipients, no email
             if (!allRecipients.Any())
+            {
+                Console.WriteLine($"[Email Info] No recipients found for city '{city}'. Skipping email.");
                 return;
+            }
 
             var subject = $"New Crime Reported in {report.AreaCity}";
 
@@ -65,7 +69,7 @@ namespace Crime_Management_System.Servises
             try
             {
                 await _emailSender.SendBulkAsync(
-                    subscribers.Select(x => x.Email),
+                    allRecipients, 
                     subject,
                     htmlBody);
             }
@@ -93,6 +97,7 @@ namespace Crime_Management_System.Servises
 
             var subscriberEmails = subscribers
                 .Select(x => x.Email)
+                .Where(e => !string.IsNullOrWhiteSpace(e))
                 .ToList();
 
             // Officers assigned to this case
@@ -102,8 +107,9 @@ namespace Crime_Management_System.Servises
                             a.User.IsActive &&
                             a.User.Role == UserRole.Officer)
                 .Select(a => a.User.Email)
+                .Where(e => !string.IsNullOrWhiteSpace(e))
                 .ToListAsync();
-
+            // get All Emails
             var allRecipients = subscriberEmails
                .Concat(officerEmails)
                .Distinct()
@@ -128,7 +134,7 @@ namespace Crime_Management_System.Servises
             try
             {
                 await _emailSender.SendBulkAsync(
-                    subscribers.Select(x => x.Email),
+                    allRecipients,
                     subject,
                     htmlBody);
             }

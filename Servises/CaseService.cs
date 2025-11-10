@@ -107,6 +107,12 @@ namespace Crime_Management_System.Services.Implementations
                         LinkedAt = DateTime.UtcNow
                     })
                     .ToList();
+                // change the CrimeReport Status to "Ongoing" that i linked to the case
+                foreach (var report in existingReports)
+                {
+                    report.Status = "Ongoing";
+                }
+
             }
 
             // 6) Save via DbContext

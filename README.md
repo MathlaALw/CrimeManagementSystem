@@ -35,6 +35,14 @@ It ensures:
 
 ---
 
+## STORYBOARD 
+
+![System Flow Diagram](./IMG/1.png)
+![System Flow Diagram](./IMG/2.png)
+![System Flow Diagram](./IMG/3.png)
+
+--- 
+
 ## 🧭 Usage / System Flow  
 
 This section explains how each role uses the system, from public crime reporting to case resolution.

@@ -165,7 +165,7 @@ namespace Crime_Management_System.Controllers
             existingUser.UpdatedAt = DateTime.UtcNow;
 
             await _userService.UpdateUserAsync(existingUser);
-            return NoContent();
+            return Ok(new { message = "User updated successfully" });
         }
 
         // DELETE: api/user/5
