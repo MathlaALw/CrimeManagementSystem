@@ -97,6 +97,7 @@ namespace Crime_Management_System.Servises
 
             var subscriberEmails = subscribers
                 .Select(x => x.Email)
+                .Where(e => !string.IsNullOrWhiteSpace(e))
                 .ToList();
 
             // Officers assigned to this case
@@ -106,8 +107,9 @@ namespace Crime_Management_System.Servises
                             a.User.IsActive &&
                             a.User.Role == UserRole.Officer)
                 .Select(a => a.User.Email)
+                .Where(e => !string.IsNullOrWhiteSpace(e))
                 .ToListAsync();
-
+            // get All Emails
             var allRecipients = subscriberEmails
                .Concat(officerEmails)
                .Distinct()
@@ -132,7 +134,7 @@ namespace Crime_Management_System.Servises
             try
             {
                 await _emailSender.SendBulkAsync(
-                    subscribers.Select(x => x.Email),
+                    allRecipients,
                     subject,
                     htmlBody);
             }
