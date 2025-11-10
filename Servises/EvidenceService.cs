@@ -25,6 +25,11 @@ namespace Crime_Management_System.Servises
         {
             if (!await _db.Cases.AnyAsync(c => c.Id == dto.CaseId)) return null;
 
+            // check if the Crime report is Closed
+            if (await CaseHasClosedCrimeReportAsync(dto.CaseId))
+            {
+                return (0, "Cannot add evidence because the related crime report is CLOSED.");
+            }
             var e = new Evidence
             {
                 CaseId = dto.CaseId,
@@ -51,6 +56,13 @@ namespace Crime_Management_System.Servises
         public async Task<(int id, string message)?> CreateImageAsync(CreateImageEvidenceDto dto, int actorUserId, string rootPath)
         {
             if (!await _db.Cases.AnyAsync(c => c.Id == dto.CaseId)) return null;
+            // Check if the Crime report is Closed
+            if (await CaseHasClosedCrimeReportAsync(dto.CaseId))
+            {
+                return (0, "Cannot add evidence because the related crime report is CLOSED.");
+            }
+
+
             if (dto.Image == null || !ImageValidator.IsValidImage(dto.Image)) return null;
 
             // Save image to disk
@@ -213,5 +225,18 @@ namespace Crime_Management_System.Servises
                 .Where(e => e.CaseId == caseId && !e.IsSoftDeleted)
                 .ToListAsync();
         }
+
+        // Helper method to check if a case has any closed crime reports
+        private async Task<bool> CaseHasClosedCrimeReportAsync(int caseId)
+        {
+            // Check if any associated crime report is closed
+            return await _db.CaseReports
+                .Include(cr => cr.Report)
+                .AnyAsync(cr =>
+                    cr.CaseId == caseId &&
+                    cr.ReportId != null &&
+                    cr.Report.Status.ToLower() == "closed");
+        }
+
     }
 }
