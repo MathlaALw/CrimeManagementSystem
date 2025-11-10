@@ -46,15 +46,31 @@ namespace Crime_Management_System.Controllers
             var user = await _userService.GetUserByIdAsync(id);
             if (user == null)
                 return NotFound();
-            return Ok(user);
+
+            // Exclude sensitive fields manually or via DTO
+            var userDto = new
+            {
+                user.Id,
+                user.Username,
+                user.Email,
+                user.FullName,
+                Role = user.Role.ToString(),
+                ClearanceLevel = user.ClearanceLevel.ToString(),
+                user.CreatedAt,
+                user.UpdatedAt,
+                user.IsActive
+            };
+
+            return Ok(userDto);
         }
+
 
         // POST: api/user
 
-        
+
         [HttpPost]
         [AuthorizeRoles("Admin")]
-        public async Task<IActionResult> CreateUser([FromBody] CreateUserDto  request)
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserDto request)
         {
             if (request == null)
                 return BadRequest(new { message = "Request body is required." });
@@ -113,9 +129,6 @@ namespace Crime_Management_System.Controllers
             return Ok(new { message = "User registered successfully", userId = user.Id });
         }
 
-
-
-
         // PUT: api/user/5
         [HttpPut("UpdateUserByID")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDto dto)
@@ -127,7 +140,7 @@ namespace Crime_Management_System.Controllers
             if (existingUser == null)
                 return NotFound();
 
-          // updte 
+            // updte 
             if (!string.IsNullOrEmpty(dto.Email))
                 existingUser.Email = dto.Email;
 
@@ -136,13 +149,10 @@ namespace Crime_Management_System.Controllers
 
             if (!string.IsNullOrEmpty(dto.Password))
             {
-                // Generate salt
-                var salt = UserService.GenerateSalt();
-
-                // Hash password + salt
-                var HashPassword = Convert.ToBase64String(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(dto.Password + salt)));
-          
-                existingUser.PasswordHash = HashPassword;
+               
+                var salt = BCrypt.Net.BCrypt.GenerateSalt();
+                var hash = BCrypt.Net.BCrypt.HashPassword(dto.Password, salt);
+                existingUser.PasswordHash = hash;
                 existingUser.Salt = salt;
             }
 
@@ -162,7 +172,7 @@ namespace Crime_Management_System.Controllers
         [HttpDelete("DeleteUser")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-          
+
             if (id <= 0)
                 return BadRequest(new { message = "Invalid user ID." });
 
@@ -176,26 +186,13 @@ namespace Crime_Management_System.Controllers
             return Ok(new { message = $"User '{user.Username}' has been deleted successfully." });
         }
 
-
-        // PUT: api/user/5/role
-        [HttpPut("role")]
-        public async Task<IActionResult> AssignRoleAndClearance(int id, [FromBody] RoleAssignmentDto dto)
+        public class RoleAssignmentDto
         {
-            var user = await _userService.GetUserByIdAsync(id);
-            if (user == null)
-                return NotFound();
-
-            await _userService.AssignRoleAndClearanceAsync(id, dto.Role, dto.ClearanceLevel);
-            return NoContent();
-            }
-
-        }
-            public class RoleAssignmentDto
-              {
             public UserRole Role { get; set; }
             public int ClearanceLevel { get; set; }
-            }
         }
+    }
+}
 
 
 
