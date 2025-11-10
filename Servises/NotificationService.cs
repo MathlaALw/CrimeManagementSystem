@@ -34,6 +34,7 @@ namespace Crime_Management_System.Servises
             var city = report.AreaCity ?? string.Empty;
             var subscribers = await _subscriptions
                 .GetSubscribersForNewCrimesAsync(city);
+          
 
             // Extract emails
             var subscriberEmails = subscribers
@@ -48,7 +49,10 @@ namespace Crime_Management_System.Servises
 
             // No recipients, no email
             if (!allRecipients.Any())
+            {
+                Console.WriteLine($"[Email Info] No recipients found for city '{city}'. Skipping email.");
                 return;
+            }
 
             var subject = $"New Crime Reported in {report.AreaCity}";
 
@@ -65,7 +69,7 @@ namespace Crime_Management_System.Servises
             try
             {
                 await _emailSender.SendBulkAsync(
-                    subscribers.Select(x => x.Email),
+                    allRecipients, 
                     subject,
                     htmlBody);
             }

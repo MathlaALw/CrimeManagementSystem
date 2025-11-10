@@ -75,8 +75,9 @@ namespace Crime_Management_System.Controllers
             };
           
             _context.CrimeReports.Add(report);
-            await _context.SaveChangesAsync();
             await _notifications.SendNewCrimeReportNotificationAsync(report);
+            await _context.SaveChangesAsync();
+           
 
             return Ok(new 
             {
