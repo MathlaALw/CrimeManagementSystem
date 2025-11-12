@@ -16,6 +16,7 @@ using Crime_Management_System.Helper;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Threading.RateLimiting;
 using Crime_Management_System.Services;
 
 
@@ -188,6 +189,50 @@ namespace Crime_Management_System
             builder.Services.Configure<EmailSettings>(
             builder.Configuration.GetSection("EmailSettings"));
             builder.Services.AddScoped<IEmailSender, EmailSender>();
+            //---Rate Limiting-------
+            builder.Services.AddRateLimiter(options =>
+            {
+                // Global limiter 
+                options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+                {
+                    var userKey = context.User?.Identity?.Name ?? context.Connection.RemoteIpAddress?.ToString() ?? "anonymous";
+
+                    return RateLimitPartition.GetTokenBucketLimiter(userKey, _ => new TokenBucketRateLimiterOptions
+                    {
+                        TokenLimit =10,
+                        TokensPerPeriod = 10,
+                        ReplenishmentPeriod = TimeSpan.FromMinutes(1),
+                        AutoReplenishment = true,
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0
+                    });
+                });
+       options.AddPolicy("AdminLimiter", context =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                        factory: _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 5,
+                            Window = TimeSpan.FromSeconds(30),
+                            QueueLimit = 0
+                        }));
+
+                // 
+                options.OnRejected = async (context, token) =>
+                {
+                    context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                    context.HttpContext.Response.ContentType = "application/json";
+                    await context.HttpContext.Response.WriteAsync(
+                        JsonSerializer.Serialize(new
+                        {
+                            error = "Too Many Requests",
+                            message = "You have exceeded the allowed limit"
+                        }), token);
+                };
+            });
+
+
+
 
             var app = builder.Build();
 
@@ -209,8 +254,10 @@ namespace Crime_Management_System
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseRateLimiter();
 
-           // app.UseMiddleware<JwtMiddleware>(); // fixed
+
+            // app.UseMiddleware<JwtMiddleware>(); // fixed
 
             app.MapControllers();
 

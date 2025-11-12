@@ -16,7 +16,7 @@ namespace Crime_Management_System.Middleware
 
         public async Task Invoke(HttpContext context)
         {
-            // ✅ create a scoped provider for this request
+            // create a scoped provider for this request
             using var scope = _serviceProvider.CreateScope();
             var jwtService = scope.ServiceProvider.GetRequiredService<JwtService>();
 

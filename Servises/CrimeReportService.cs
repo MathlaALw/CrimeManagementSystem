@@ -74,6 +74,7 @@ namespace Crime_Management_System.Servises
             report.Description = reportDto.Description;
             report.AreaCity = reportDto.AreaCity;
             report.Status = reportDto.Status;
+            
 
 
 

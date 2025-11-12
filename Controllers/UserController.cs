@@ -10,11 +10,13 @@ using Crime_Management_System.Services.Implementations;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Crime_Management_System.Data;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Crime_Management_System.Controllers
 {
     [Authorize]
     [AuthorizeRoles("Admin")]
+    [EnableRateLimiting("AdminLimiter")]
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
@@ -191,6 +193,8 @@ namespace Crime_Management_System.Controllers
             public UserRole Role { get; set; }
             public int ClearanceLevel { get; set; }
         }
+
+
     }
 }
 

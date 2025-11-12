@@ -5,11 +5,13 @@ using Crime_Management_System.Models;
 using Crime_Management_System.Services.Interfaces;
 using Crime_Management_System.Servises;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Crime_Management_System.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [EnableRateLimiting("fixed")]
     [AuthorizeRoles("Admin", "Investigator")]
     public class CasesController : ControllerBase
     {
