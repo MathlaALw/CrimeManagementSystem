@@ -1,17 +1,14 @@
 ﻿using Crime_Management_System.DTOs;
-using Crime_Management_System.Models;
 using Crime_Management_System.Servises;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using AutoMapper;
 
-namespace Crime_Management_System.Controllers
+namespace Crime_Management_System.Controllers.V2
 {
-
     [ApiController]
-    // API versioning
-    [ApiVersion("1.0")]
+    // API versioning 2 
+    [ApiVersion("2.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
     [Authorize(Policy = "InvestigatorOrAbove")]
     public class EvidenceController : ControllerBase
@@ -43,18 +40,27 @@ namespace Crime_Management_System.Controllers
             }
         }
         // Create text evidence
-        // The Url with versioning: /api/v1/evidence/CreateTextEvidence
-      
+        // The Url with versioning: /api/v2/evidence/CreateTextEvidence
+
         [HttpPost("CreateTextEvidence")]
+        [MapToApiVersion("2.0")] 
         [Authorize(Policy = "OfficerOrHigher")]
 
         public async Task<IActionResult> CreateText(CreateTextEvidenceDto dto)
         {
-            if (dto is null) return BadRequest("Payload is required.");
-            var res = await _service.CreateTextAsync(dto, CurrentUserId);
-            return res is null ?
-                NotFound("Case not found") :
-                Ok(new { res?.id, res?.message });
+            //if (dto is null) return BadRequest("Payload is required.");
+            //var res = await _service.CreateTextAsync(dto, CurrentUserId);
+            //return res is null ?
+            //    NotFound("Case not found") :
+            //    Ok(new { res?.id, res?.message });
+            var result = await _service.CreateTextAsync(new CreateTextEvidenceDto
+            {
+                CaseId = dto.CaseId,
+                TextContent = dto.TextContent,
+                Remarks = dto.Remarks
+            } , CurrentUserId);
+
+            return Ok(new { message = "Created (v2)", data = result });
         }
 
         // Create image evidence
@@ -165,7 +171,7 @@ namespace Crime_Management_System.Controllers
 
 
         // get all evidence of a case
-      
+
         [HttpGet("AllEvidenceByCase")]
         public async Task<IActionResult> GetByCase(int caseId)
         {
