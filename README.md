@@ -56,10 +56,10 @@ Citizens can report crimes, track their progress, and subscribe for safety alert
 
 | Action | Endpoint | Authentication |
 |---------|-----------|----------------|
-| Report a crime | `POST /api/CrimeReports` | ❌ Public |
-| Track report status | `GET /api/CrimeReports/GetReportStatus?reportId=...` | ❌ Public |
-| Subscribe to alerts | `POST /api/CitizenSubscriptions/subscribe` | ❌ Public |
-| Unsubscribe | `POST /api/CitizenSubscriptions/unsubscribe?email=...` | ❌ Public |
+| Report a crime | `POST /api/CrimeReports` | Public |
+| Track report status | `GET /api/CrimeReports/GetReportStatus?reportId=...` | Public |
+| Subscribe to alerts | `POST /api/CitizenSubscriptions/subscribe` | Public |
+| Unsubscribe | `POST /api/CitizenSubscriptions/unsubscribe?email=...` | Public |
 
 **Process:**
 1. Citizen submits a crime report.  
