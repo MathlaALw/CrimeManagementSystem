@@ -18,6 +18,9 @@ using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.RateLimiting;
 using Crime_Management_System.Services;
+using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 
 
 
@@ -164,7 +167,7 @@ namespace Crime_Management_System
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new() { Title = "Crime Management API", Version = "v1" });
+               
 
                 var scheme = new OpenApiSecurityScheme
                 {
@@ -234,6 +237,26 @@ namespace Crime_Management_System
 
 
 
+
+            // ------------ API versioning -------------
+            builder.Services.AddApiVersioning(options =>
+            {
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.DefaultApiVersion = new ApiVersion(1, 0); // v1 as default
+                options.ReportApiVersions = true;
+                options.ApiVersionReader = new UrlSegmentApiVersionReader(); // /api/v{version}/...
+            });
+            // Versioned API Explorer (so Swagger can generate one doc per version)
+            builder.Services.AddVersionedApiExplorer(options =>
+            {
+                options.GroupNameFormat = "'v'VVV";           // v1, v2, v3
+                options.SubstituteApiVersionInUrl = true;     // replace {version:apiVersion} in routes
+            });
+
+            // Hook up IHttpContextAccessor for services that need it
+            builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
+
+
             var app = builder.Build();
 
             // ---------- SEED DATA ----------
@@ -247,7 +270,15 @@ namespace Crime_Management_System
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
-                app.UseSwaggerUI();
+                var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+                app.UseSwaggerUI(options =>
+                {
+                    foreach (var desc in provider.ApiVersionDescriptions)
+                    {
+                        options.SwaggerEndpoint($"/swagger/{desc.GroupName}/swagger.json",
+                                                $"Crime Management System API {desc.GroupName.ToUpperInvariant()}");
+                    }
+                });
             }
 
             app.UseHttpsRedirection();

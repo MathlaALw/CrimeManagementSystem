@@ -168,6 +168,15 @@ namespace Crime_Management_System.Services.Implementations
 
             existingCase.Status = caseEntity.Status;
 
+            // Update related CrimeReport statuses
+            var caseReports = await _dbContext.CaseReports
+               .Where(cr => cr.CaseId == existingCase.Id)
+               .Include(cr => cr.Report)
+               .ToListAsync();
+
+            foreach(var caseReport in caseReports) {
+                caseReport.Report.Status = caseEntity.Status == CaseStatus.Closed ? "Closed" : "Ongoing";
+            }
 
             await _dbContext.SaveChangesAsync();
             return existingCase;
