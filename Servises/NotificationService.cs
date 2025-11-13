@@ -31,28 +31,28 @@ namespace Crime_Management_System.Servises
                 .ToListAsync();
 
             // citizens subscribed to "new crimes" in this city
-            var city = report.AreaCity ?? string.Empty;
-            var subscribers = await _subscriptions
-                .GetSubscribersForNewCrimesAsync(city);
+            //var city = report.AreaCity ?? string.Empty;
+            //var subscribers = await _subscriptions
+            //    .GetSubscribersForNewCrimesAsync(city);
           
 
-            // Extract emails
-            var subscriberEmails = subscribers
-                .Select(x => x.Email)
-                .ToList();
+            //// Extract emails
+            //var subscriberEmails = subscribers
+            //    .Select(x => x.Email)
+            //    .ToList();
 
-            // Combine and deduplicate
-            var allRecipients = internalRecipients
-                .Concat(subscriberEmails)
-                .Distinct()
-                .ToList();
+            //// Combine and deduplicate
+            //var allRecipients = internalRecipients
+            //    .Concat(subscriberEmails)
+            //    .Distinct()
+            //    .ToList();
 
             // No recipients, no email
-            if (!allRecipients.Any())
-            {
-                Console.WriteLine($"[Email Info] No recipients found for city '{city}'. Skipping email.");
-                return;
-            }
+            //if (!allRecipients.Any())
+            //{
+            //    Console.WriteLine($"[Email Info] No recipients found for city '{city}'. Skipping email.");
+            //    return;
+            //}
 
             var subject = $"New Crime Reported in {report.AreaCity}";
 
@@ -69,7 +69,7 @@ namespace Crime_Management_System.Servises
             try
             {
                 await _emailSender.SendBulkAsync(
-                    allRecipients, 
+                    internalRecipients, 
                     subject,
                     htmlBody);
             }
@@ -91,14 +91,14 @@ namespace Crime_Management_System.Servises
             var city = caseEntity.AreaCity ?? string.Empty;
 
 
-            // Citizens subscribed for case updates in this city
-            var subscribers = await _subscriptions
-                .GetSubscribersForCaseUpdatesAsync(city);
+            //// Citizens subscribed for case updates in this city
+            //var subscribers = await _subscriptions
+            //    .GetSubscribersForCaseUpdatesAsync(city);
 
-            var subscriberEmails = subscribers
-                .Select(x => x.Email)
-                .Where(e => !string.IsNullOrWhiteSpace(e))
-                .ToList();
+            //var subscriberEmails = subscribers
+            //    .Select(x => x.Email)
+            //    .Where(e => !string.IsNullOrWhiteSpace(e))
+            //    .ToList();
 
             // Officers assigned to this case
             var officerEmails = await _db.CaseAssignees
@@ -109,13 +109,13 @@ namespace Crime_Management_System.Servises
                 .Select(a => a.User.Email)
                 .Where(e => !string.IsNullOrWhiteSpace(e))
                 .ToListAsync();
-            // get All Emails
-            var allRecipients = subscriberEmails
-               .Concat(officerEmails)
-               .Distinct()
-               .ToList();
+            //// get All Emails
+            //var allRecipients = subscriberEmails
+            //   .Concat(officerEmails)
+            //   .Distinct()
+            //   .ToList();
 
-            if (!allRecipients.Any())
+            if (!officerEmails.Any())
                 return;
 
             var subject = $"Case {caseEntity.CaseNumber} Updated in {caseEntity.AreaCity}";
@@ -134,7 +134,7 @@ namespace Crime_Management_System.Servises
             try
             {
                 await _emailSender.SendBulkAsync(
-                    allRecipients,
+                    officerEmails,
                     subject,
                     htmlBody);
             }
