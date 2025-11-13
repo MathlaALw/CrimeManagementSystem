@@ -196,7 +196,7 @@ namespace Crime_Management_System.Servises
                     City = city
                   
                 });
-
+            Console.WriteLine($"[DEBUG] Citizen emails returned for city {city}: {emails?.Count ?? 0}");
             if (emails == null || !emails.Any())
             {
                 Console.WriteLine("No citizen emails found for city {City}", city);
@@ -215,11 +215,17 @@ namespace Crime_Management_System.Servises
 
             try
             {
+
+
+                // await _emailSender.SendBulkAsync(emails, subject, htmlBody);
+                Console.WriteLine($"[DEBUG] Sending alert to {emails.Count} citizen(s) via SendGrid...");
                 await _emailSender.SendBulkAsync(emails, subject, htmlBody);
+                Console.WriteLine("[DEBUG] SendBulkAsync call completed.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[Email Error] {ex.Message}");
+                //Console.WriteLine($"[DEBUG] Emails count: {emails.Count}");
 
             }
         }

@@ -28,7 +28,7 @@ namespace CitizenManagementSystem.Controllers
         }
 
         // Internal use: get list of emails (for CrimeManagementSystem)
-        [HttpPost("getEmails")]
+        [HttpPost("emails")]
         public async Task<IActionResult> GetEmails([FromBody] CitizenEmailFilterDto filter)
         {
             var emails = await _service.GetCitizenEmailsAsync(filter);

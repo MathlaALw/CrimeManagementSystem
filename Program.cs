@@ -263,10 +263,11 @@ namespace Crime_Management_System
             //{
             //    client.BaseAddress = new Uri(citizenBaseUrl!);
             //});
+            var citizenBaseUrl = builder.Configuration["ExternalServices:CitizenServiceBaseUrl"];
 
             builder.Services.AddHttpClient<ICitizenDirectoryClient, CitizenDirectoryClient>(client =>
             {
-                client.BaseAddress = new Uri(builder.Configuration["ExternalServices:CitizenServiceBaseUrl"]);
+                client.BaseAddress = new Uri(citizenBaseUrl!);
             });
 
             var app = builder.Build();
