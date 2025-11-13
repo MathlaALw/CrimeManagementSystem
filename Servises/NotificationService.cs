@@ -199,9 +199,9 @@ namespace Crime_Management_System.Servises
             Console.WriteLine($"[DEBUG] Citizen emails returned for city {city}: {emails?.Count ?? 0}");
             if (emails == null || !emails.Any())
             {
-                Console.WriteLine("No citizen emails found for city {City}", city);
+                Console.WriteLine($"No citizen emails found for city {city}");
 
-                return;
+                // return;
             }
 
             var subject = $"📢 Community Alert for {city}: {title}";
