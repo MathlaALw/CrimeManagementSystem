@@ -1,4 +1,5 @@
 ﻿using Crime_Management_System.Data;
+using Crime_Management_System.DTOs;
 using Crime_Management_System.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,16 +7,18 @@ namespace Crime_Management_System.Servises
 {
     public class NotificationService : INotificationService
     {
-        private readonly ICitizenSubscriptionService _subscriptions;
+        //private readonly ICitizenSubscriptionService _subscriptions;
         private readonly IEmailSender _emailSender;
         private readonly CrimeDbContext _db;
+        private readonly ICitizenDirectoryClient _citizenDirectoryClient;
         public NotificationService(
-            ICitizenSubscriptionService subscriptions,
+            ICitizenDirectoryClient citizenDirectoryClient,
             IEmailSender emailSender , CrimeDbContext crimeDbContext)
         {
-            _subscriptions = subscriptions;
+            //_subscriptions = subscriptions;
             _emailSender = emailSender;
             _db = crimeDbContext;
+            _citizenDirectoryClient = citizenDirectoryClient;
         }
         //Send new crime report notification 
         //New Crime Report -> notify Admins + Investigators + subscribed citizens 
@@ -149,10 +152,17 @@ namespace Crime_Management_System.Servises
         // Send community alert
         public async Task SendCommunityAlertAsync(string city, string title, string message)
         {
-            var subscribers = await _subscriptions
-                .GetSubscribersForAlertsAsync(city);
+            //var subscribers = await _subscriptions
+            //    .GetSubscribersForAlertsAsync(city);
 
-            if (!subscribers.Any())
+            var emails = await _citizenDirectoryClient.GetCitizenEmailsAsync(
+                new CitizenEmailFilterRequestDto
+                {
+                    City = city,
+                   
+                });
+
+            if (!emails.Any())
                 return;
 
             var subject = $"📢 Community Alert for {city}: {title}";
@@ -167,7 +177,7 @@ namespace Crime_Management_System.Servises
             try
             {
                 await _emailSender.SendBulkAsync(
-                    subscribers.Select(x => x.Email),
+                    emails,
                     subject,
                     htmlBody);
 

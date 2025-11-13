@@ -257,6 +257,13 @@ namespace Crime_Management_System
             builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
 
 
+            var citizenBaseUrl = builder.Configuration["ExternalServices:CitizenServiceBaseUrl"];
+
+            builder.Services.AddHttpClient<ICitizenDirectoryClient, CitizenDirectoryClient>(client =>
+            {
+                client.BaseAddress = new Uri(citizenBaseUrl!);
+            });
+
             var app = builder.Build();
 
             // ---------- SEED DATA ----------

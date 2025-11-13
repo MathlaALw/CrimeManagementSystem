@@ -10,18 +10,58 @@ namespace Crime_Management_System.Controllers
     public class AlertsController : ControllerBase
     {
         private readonly INotificationService _notifications;
+        private readonly ICitizenDirectoryClient _citizenClient;
+        
 
-        public AlertsController(INotificationService notifications)
+        public AlertsController(INotificationService notifications,ICitizenDirectoryClient citizenDirectoryClient )
         {
             _notifications = notifications;
+            _citizenClient = citizenDirectoryClient;
         }
 
-        [HttpPost("community-alert")]
-        [Authorize(Policy = "AdminOnly")]
-        public async Task<IActionResult> SendAlert([FromBody] CreateAlertDto dto)
+        //[HttpPost("community-alert")]
+        //[Authorize(Policy = "AdminOnly")]
+        //public async Task<IActionResult> SendAlert([FromBody] CreateAlertDto dto)
+        //{
+        //    await _notifications.SendCommunityAlertAsync(dto.City, dto.Title, dto.Message);
+        //    return Ok(new { message = "Alert sent to subscribed citizens." });
+        //}
+
+        [HttpPost("community-alert-from-citizens")]
+        public async Task<IActionResult> SendCommunityAlertFromCitizenService(
+           [FromBody] CommunityAlertFromCitizenServiceDto dto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var filter = new CitizenEmailFilterRequestDto
+            {
+                City = dto.City
+               
+            };
             await _notifications.SendCommunityAlertAsync(dto.City, dto.Title, dto.Message);
-            return Ok(new { message = "Alert sent to subscribed citizens." });
+            //var emails = await _citizenClient.GetCitizenEmailsAsync(filter);
+
+            //if (emails.Count == 0)
+            //{
+            //    return NotFound(new { message = "No citizen emails found for the given filter." });
+            //}
+
+            //foreach (var email in emails)
+            //{
+            //    await _notifications.SendCommunityAlertAsync(
+            //        to: email,
+            //        subject: dto.Title,
+            //        body: dto.Message);
+            //}
+
+           
+
+            return Ok(new
+            {
+                message = "Community alert sent",
+               // recipients = emails.Count
+            });
         }
     }
 }
