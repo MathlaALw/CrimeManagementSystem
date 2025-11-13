@@ -45,6 +45,8 @@ namespace Crime_Management_System.Controllers
             return Ok(new
             {
                 message = "Community alert sent",
+
+
                // recipients = emails.Count
             });
         }
