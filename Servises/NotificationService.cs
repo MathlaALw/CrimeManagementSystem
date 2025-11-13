@@ -150,42 +150,74 @@ namespace Crime_Management_System.Servises
         }
 
         // Send community alert
+        //public async Task SendCommunityAlertAsync(string city, string title, string message)
+        //{
+        //    //var subscribers = await _subscriptions
+        //    //    .GetSubscribersForAlertsAsync(city);
+
+        //    var emails = await _citizenDirectoryClient.GetCitizenEmailsAsync(
+        //        new CitizenEmailFilterRequestDto
+        //        {
+        //            City = city,
+
+        //        });
+
+        //    if (!emails.Any())
+        //        return;
+
+        //    var subject = $"📢 Community Alert for {city}: {title}";
+
+        //    var htmlBody = $@"
+        //        <h2>Community Alert - {city}</h2>
+        //        <h3>{title}</h3>
+        //        <p>{message}</p>
+        //        <hr/>
+        //        <p style='color:#555;'>Stay safe. This alert was sent by District Core Crime Management System.</p>
+        //    ";
+        //    try
+        //    {
+        //        await _emailSender.SendBulkAsync(
+        //            emails,
+        //            subject,
+        //            htmlBody);
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"[Email Error] {ex.Message}");
+        //    }
+        //}
+
         public async Task SendCommunityAlertAsync(string city, string title, string message)
         {
-            //var subscribers = await _subscriptions
-            //    .GetSubscribersForAlertsAsync(city);
-
             var emails = await _citizenDirectoryClient.GetCitizenEmailsAsync(
                 new CitizenEmailFilterRequestDto
                 {
-                    City = city,
-                   
+                    City = city
+                  
                 });
 
-            if (!emails.Any())
-                return;
+           
 
             var subject = $"📢 Community Alert for {city}: {title}";
-
             var htmlBody = $@"
-                <h2>Community Alert - {city}</h2>
-                <h3>{title}</h3>
-                <p>{message}</p>
-                <hr/>
-                <p style='color:#555;'>Stay safe. This alert was sent by District Core Crime Management System.</p>
-            ";
+            <h2>Community Alert - {city}</h2>
+            <h3>{title}</h3>
+            <p>{message}</p>
+            <hr/>
+            <p style='color:#555;'>Stay safe. This alert was sent by District Core Crime Management System.</p>
+        ";
+
             try
             {
-                await _emailSender.SendBulkAsync(
-                    emails,
-                    subject,
-                    htmlBody);
-
+                await _emailSender.SendBulkAsync(emails, subject, htmlBody);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[Email Error] {ex.Message}");
+
             }
         }
+
     }
 }

@@ -34,27 +34,13 @@ namespace Crime_Management_System.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var filter = new CitizenEmailFilterRequestDto
-            {
-                City = dto.City
+            //var filter = new CitizenEmailFilterRequestDto
+            //{
+            //    City = dto.City
                
-            };
+            //};
             await _notifications.SendCommunityAlertAsync(dto.City, dto.Title, dto.Message);
-            //var emails = await _citizenClient.GetCitizenEmailsAsync(filter);
-
-            //if (emails.Count == 0)
-            //{
-            //    return NotFound(new { message = "No citizen emails found for the given filter." });
-            //}
-
-            //foreach (var email in emails)
-            //{
-            //    await _notifications.SendCommunityAlertAsync(
-            //        to: email,
-            //        subject: dto.Title,
-            //        body: dto.Message);
-            //}
-
+           
            
 
             return Ok(new
