@@ -197,7 +197,12 @@ namespace Crime_Management_System.Servises
                   
                 });
 
-           
+            if (emails == null || !emails.Any())
+            {
+                Console.WriteLine("No citizen emails found for city {City}", city);
+
+                return;
+            }
 
             var subject = $"📢 Community Alert for {city}: {title}";
             var htmlBody = $@"

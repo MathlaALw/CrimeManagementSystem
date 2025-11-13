@@ -256,12 +256,17 @@ namespace Crime_Management_System
             // Hook up IHttpContextAccessor for services that need it
             builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
 
+            // Connecting the 
+            //var citizenBaseUrl = builder.Configuration["ExternalServices:CitizenServiceBaseUrl"];
 
-            var citizenBaseUrl = builder.Configuration["ExternalServices:CitizenServiceBaseUrl"];
+            //builder.Services.AddHttpClient<ICitizenDirectoryClient, CitizenDirectoryClient>(client =>
+            //{
+            //    client.BaseAddress = new Uri(citizenBaseUrl!);
+            //});
 
             builder.Services.AddHttpClient<ICitizenDirectoryClient, CitizenDirectoryClient>(client =>
             {
-                client.BaseAddress = new Uri(citizenBaseUrl!);
+                client.BaseAddress = new Uri(builder.Configuration["ExternalServices:CitizenServiceBaseUrl"]);
             });
 
             var app = builder.Build();

@@ -17,7 +17,7 @@ namespace Crime_Management_System.Servises
         public async Task<List<string>> GetCitizenEmailsAsync(CitizenEmailFilterRequestDto filter)
         {
             // POST https://citizen-service/api/Citizen/emails
-            var response = await _httpClient.PostAsJsonAsync("api/Citizen/emails", filter);
+            var response = await _httpClient.PostAsJsonAsync("api/Citizen/getEmails", filter);
 
             if (!response.IsSuccessStatusCode)
             {
